@@ -1,0 +1,310 @@
+{
+  "version": "1.0",
+  "description": "面相学五维特征规则库（程序可读版）",
+  "dimensions": [
+    {
+      "id": "yintang",
+      "name": "印堂",
+      "region": "两眉之间",
+      "core_meaning": "命宫——适应力、心胸、整体运势",
+      "rules": [
+        {
+          "feature": "印堂开阔平满",
+          "polarity": "positive",
+          "meaning": "心胸豁达，适应力强，乐观从容",
+          "fortune_templates": ["胸怀宽广，万事可期", "心有乾坤，自成格局"]
+        },
+        {
+          "feature": "印堂明润有光",
+          "polarity": "positive",
+          "meaning": "气色佳，贵人运强",
+          "fortune_templates": ["紫气东来，好运将至", "明堂生辉，鸿运当头"]
+        },
+        {
+          "feature": "正义纹（双直纹）",
+          "polarity": "positive",
+          "meaning": "深度思考，逻辑分析强",
+          "fortune_templates": ["思如泉涌，智者之相"]
+        },
+        {
+          "feature": "印堂稍窄",
+          "polarity": "neutral_rewrite",
+          "original_meaning": "心胸不够开阔",
+          "rewritten_meaning": "专注力强，做事认真执着",
+          "fortune_templates": ["专注如激光，必成大器"]
+        },
+        {
+          "feature": "悬针纹",
+          "polarity": "neutral_rewrite",
+          "original_meaning": "固执偏执",
+          "rewritten_meaning": "意志坚定，事业型人才",
+          "fortune_templates": ["意志如钢，事业必成"]
+        },
+        {
+          "feature": "印堂微暗",
+          "polarity": "neutral_rewrite",
+          "original_meaning": "近期运势差",
+          "rewritten_meaning": "蓄势待发，厚积薄发之兆",
+          "fortune_templates": ["蓄势待发，一鸣惊人"]
+        }
+      ]
+    },
+    {
+      "id": "eyebrow_eye",
+      "name": "眉眼神态",
+      "region": "眉毛+眼睛",
+      "core_meaning": "性情、智慧、决断力（面相权重最大）",
+      "rules": [
+        {
+          "feature": "眼神有神/藏神",
+          "polarity": "positive",
+          "meaning": "精气神充足，决断力强",
+          "fortune_templates": ["目含星辰，洞察万物", "眸中藏慧，前程似锦"]
+        },
+        {
+          "feature": "眉清目秀",
+          "polarity": "positive",
+          "meaning": "精气充盈，心性纯良",
+          "fortune_templates": ["秀外慧中，天生贵相"]
+        },
+        {
+          "feature": "眉毛长过眼",
+          "polarity": "positive",
+          "meaning": "思维宽广，有远见",
+          "fortune_templates": ["深谋远虑，必成大器"]
+        },
+        {
+          "feature": "田宅宫宽广",
+          "polarity": "positive",
+          "meaning": "心胸开阔，家运兴隆",
+          "fortune_templates": ["家业丰厚，广纳百川"]
+        },
+        {
+          "feature": "眉浓而粗",
+          "polarity": "neutral_rewrite",
+          "original_meaning": "阳刚过重、急躁",
+          "rewritten_meaning": "果敢刚毅，行动力超群",
+          "fortune_templates": ["果敢刚毅，行动派领袖"]
+        },
+        {
+          "feature": "眉短不过目",
+          "polarity": "neutral_rewrite",
+          "original_meaning": "急躁冲动",
+          "rewritten_meaning": "雷厉风行，效率极高",
+          "fortune_templates": ["雷厉风行，效率之王"]
+        },
+        {
+          "feature": "眼神锐利",
+          "polarity": "neutral_rewrite",
+          "original_meaning": "外强中干",
+          "rewritten_meaning": "锋芒毕露，英气逼人",
+          "fortune_templates": ["锋芒毕露，英气逼人"]
+        },
+        {
+          "feature": "眉压目",
+          "polarity": "neutral_rewrite",
+          "original_meaning": "压抑暴躁",
+          "rewritten_meaning": "内敛沉稳，胸有城府",
+          "fortune_templates": ["内敛沉稳，深藏不露"]
+        }
+      ]
+    },
+    {
+      "id": "nose",
+      "name": "鼻翼/鼻头",
+      "region": "鼻子整体",
+      "core_meaning": "财帛宫——财运、健康、自我意志",
+      "rules": [
+        {
+          "feature": "准头圆润有肉",
+          "polarity": "positive",
+          "meaning": "赚钱能力强，财运亨通",
+          "fortune_templates": ["财星高照，金玉满堂", "鼻如悬胆，富甲一方"]
+        },
+        {
+          "feature": "鼻翼饱满有力",
+          "polarity": "positive",
+          "meaning": "守财能力强，理财有方",
+          "fortune_templates": ["财库充盈，稳如泰山"]
+        },
+        {
+          "feature": "鼻梁高挺正直",
+          "polarity": "positive",
+          "meaning": "意志力强，脊梁正直",
+          "fortune_templates": ["正气凛然，大将之风"]
+        },
+        {
+          "feature": "山根高隆",
+          "polarity": "positive",
+          "meaning": "承接能力强，中年起步高",
+          "fortune_templates": ["根基深厚，中年发达"]
+        },
+        {
+          "feature": "鼻头稍尖",
+          "polarity": "neutral_rewrite",
+          "original_meaning": "刻薄精明",
+          "rewritten_meaning": "精明强干，算无遗策",
+          "fortune_templates": ["精明强干，算无遗策"]
+        },
+        {
+          "feature": "鼻翼较薄",
+          "polarity": "neutral_rewrite",
+          "original_meaning": "守财力弱",
+          "rewritten_meaning": "出手大方，广结善缘",
+          "fortune_templates": ["慷慨豪爽，广结善缘"]
+        },
+        {
+          "feature": "鼻梁微有起节",
+          "polarity": "neutral_rewrite",
+          "original_meaning": "固执暴躁",
+          "rewritten_meaning": "有棱有角，个性鲜明",
+          "fortune_templates": ["有棱有角，个性鲜明"]
+        },
+        {
+          "feature": "山根稍低",
+          "polarity": "neutral_rewrite",
+          "original_meaning": "中年起步难",
+          "rewritten_meaning": "白手起家之相",
+          "fortune_templates": ["白手起家，越奋斗越精彩"]
+        }
+      ]
+    },
+    {
+      "id": "mouth_chin",
+      "name": "嘴角/下巴",
+      "region": "口+颌",
+      "core_meaning": "晚年福气、行动力、享受能力",
+      "rules": [
+        {
+          "feature": "嘴大唇厚紧闭",
+          "polarity": "positive",
+          "meaning": "胆量大、重感情、意志坚定",
+          "fortune_templates": ["口福深厚，晚景繁华"]
+        },
+        {
+          "feature": "嘴唇红润",
+          "polarity": "positive",
+          "meaning": "脾胃健康，享受力强",
+          "fortune_templates": ["福泽深厚，衣食无忧"]
+        },
+        {
+          "feature": "下巴圆润饱满",
+          "polarity": "positive",
+          "meaning": "晚年运势安稳",
+          "fortune_templates": ["地阁方圆，晚年安康"]
+        },
+        {
+          "feature": "腮骨饱满",
+          "polarity": "positive",
+          "meaning": "行动力强，执行力佳",
+          "fortune_templates": ["脚踏实地，稳步登峰"]
+        },
+        {
+          "feature": "嘴唇较薄",
+          "polarity": "neutral_rewrite",
+          "original_meaning": "薄情理性",
+          "rewritten_meaning": "理智冷静，谈判高手",
+          "fortune_templates": ["理智冷静，谈判高手"]
+        },
+        {
+          "feature": "嘴较小",
+          "polarity": "neutral_rewrite",
+          "original_meaning": "胆小谨慎",
+          "rewritten_meaning": "心思细腻，精益求精",
+          "fortune_templates": ["心思细腻，精益求精"]
+        },
+        {
+          "feature": "下巴稍尖",
+          "polarity": "neutral_rewrite",
+          "original_meaning": "晚运飘零",
+          "rewritten_meaning": "精致灵巧，青春永驻",
+          "fortune_templates": ["精致灵巧，青春永驻"]
+        },
+        {
+          "feature": "腮骨明显",
+          "polarity": "neutral_rewrite",
+          "original_meaning": "操劳命",
+          "rewritten_meaning": "执行力爆表",
+          "fortune_templates": ["执行力爆表，不达目的不罢休"]
+        }
+      ]
+    },
+    {
+      "id": "complexion",
+      "name": "整体气色",
+      "region": "全脸",
+      "core_meaning": "近期运势、健康状态、精气神",
+      "rules": [
+        {
+          "feature": "面色明黄透亮",
+          "polarity": "positive",
+          "meaning": "脾胃气足，财运旺盛",
+          "fortune_templates": ["面泛金光，财源广进"]
+        },
+        {
+          "feature": "面色红润",
+          "polarity": "positive",
+          "meaning": "心气充足，桃花旺盛",
+          "fortune_templates": ["红光满面，喜事临门"]
+        },
+        {
+          "feature": "面色润白如玉",
+          "polarity": "positive",
+          "meaning": "肺气清肃，有文名",
+          "fortune_templates": ["温润如玉，才华横溢"]
+        },
+        {
+          "feature": "精神饱满眼亮",
+          "polarity": "positive",
+          "meaning": "整体精气神旺盛",
+          "fortune_templates": ["神采奕奕，龙马精神"]
+        },
+        {
+          "feature": "面色稍暗",
+          "polarity": "neutral_rewrite",
+          "original_meaning": "运势低迷",
+          "rewritten_meaning": "深沉内敛，大器晚成之兆",
+          "fortune_templates": ["深沉内敛，大器晚成"]
+        },
+        {
+          "feature": "面色偏白",
+          "polarity": "neutral_rewrite",
+          "original_meaning": "气血不足",
+          "rewritten_meaning": "冷静自持，智者气质",
+          "fortune_templates": ["冷静自持，智者气质"]
+        },
+        {
+          "feature": "面色微红",
+          "polarity": "neutral_rewrite",
+          "original_meaning": "心火旺",
+          "rewritten_meaning": "热情洋溢，活力四射",
+          "fortune_templates": ["热情洋溢，活力四射"]
+        }
+      ]
+    }
+  ],
+  "rewrite_rules": {
+    "positive_first": true,
+    "forbidden_words": ["破财", "牢狱", "刑克", "孤独", "贫贱", "凶", "灾", "祸", "死", "丧"],
+    "max_fortune_length": 30,
+    "min_fortune_length": 20,
+    "tech_memes_enabled": true
+  },
+  "tech_memes": [
+    "你的面相堪比 10x Engineer",
+    "印堂发亮，堪比 GPU 满载",
+    "这张脸的 market cap 不可估量",
+    "你的气场自带 root 权限",
+    "鼻梁如同代码一样笔直优雅",
+    "面相 PR 已 merge，前途无量",
+    "你的颧骨就是最好的防火墙",
+    "嘴角上扬弧度 = 指数级增长曲线",
+    "下巴圆润，晚年 portfolio 稳如 S&P 500",
+    "眉目间自带 AI 加持光环",
+    "天庭饱满，堪称人形 LLM",
+    "你这面相，简直是 open source 级别的通透",
+    "气色红润如同刚拿到 Series A",
+    "印堂开阔，debug 人生从不卡壳",
+    "你的五官配置堪比 M4 Ultra"
+  ]
+}

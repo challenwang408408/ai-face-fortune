@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 相面 - 春晚特别版</title>
+    <!-- MediaPipe Tasks Vision (module 方式) -->
+    <script type="module">
+        import {FilesetResolver, FaceDetector} from
+            "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/+esm";
+        window.FilesetResolver = FilesetResolver;
+        window.FaceDetector = FaceDetector;
+        window.dispatchEvent(new Event('mediapipe-ready'));
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: "Noto Serif SC", "PingFang SC", "Microsoft YaHei", serif;
+            background: radial-gradient(ellipse at top, #1a0a0a 0%, #0a0205 60%, #000 100%);
+            color: #f0e6d3;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        /* ── 背景装饰粒子 ── */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background:
+                radial-gradient(2px 2px at 20% 30%, rgba(255,215,0,0.3) 0%, transparent 100%),
+                radial-gradient(2px 2px at 70% 20%, rgba(255,107,53,0.2) 0%, transparent 100%),
+                radial-gradient(2px 2px at 40% 80%, rgba(255,215,0,0.15) 0%, transparent 100%),
+                radial-gradient(3px 3px at 80% 60%, rgba(255,50,50,0.15) 0%, transparent 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── 顶部标题 ── */
+        .header {
+            text-align: center;
+            padding: 24px 0 8px;
+            position: relative;
+            z-index: 1;
+        }
+        .header h1 {
+            font-size: 3.2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffd700 0%, #ff6b35 40%, #ffd700 60%, #ff4444 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 12px;
+            filter: drop-shadow(0 0 20px rgba(255,215,0,0.4));
+        }
+        .header .subtitle {
+            font-size: 0.9rem;
+            color: #c4a35a;
+            margin-top: 6px;
+            letter-spacing: 4px;
+        }
+        .header .year-badge {
+            display: inline-block;
+            margin-top: 4px;
+            padding: 2px 16px;
+            background: linear-gradient(90deg, transparent, rgba(255,215,0,0.15), transparent);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #c4a35a;
+            letter-spacing: 3px;
+        }
+
+        /* ── 取景框（门口展示，适合围观） ── */
+        .camera-container {
+            position: relative;
+            width: min(1120px, 92vw);
+            aspect-ratio: 4/3;
+            border: 2px solid rgba(255, 215, 0, 0.35);
+            border-radius: 16px;
+            overflow: hidden;
+            margin: 12px 0;
+            background: #111;
+            box-shadow:
+                0 0 40px rgba(255,215,0,0.08),
+                inset 0 0 60px rgba(0,0,0,0.5);
+            z-index: 1;
+        }
+        /* 四角装饰 */
+        .camera-container::before, .camera-container::after {
+            content: '';
+            position: absolute;
+            width: 52px; height: 52px;
+            border-color: #ffd700;
+            border-style: solid;
+            z-index: 20;
+            pointer-events: none;
+        }
+        .camera-container::before {
+            top: 8px; left: 8px;
+            border-width: 3px 0 0 3px;
+        }
+        .camera-container::after {
+            top: 8px; right: 8px;
+            border-width: 3px 3px 0 0;
+        }
+
+        #video {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+        #overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            transform: scaleX(-1);
+        }
+
+        .face-count {
+            position: absolute;
+            top: 14px; right: 20px;
+            background: rgba(0,0,0,0.65);
+            color: #ffd700;
+            padding: 8px 18px;
+            border-radius: 24px;
+            font-size: 1rem;
+            z-index: 10;
+            backdrop-filter: blur(4px);
+        }
+
+        /* ── 分析中覆盖层 ── */
+        .analyzing-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 30;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            backdrop-filter: blur(3px);
+        }
+        .analyzing-overlay.active { display: flex; }
+
+        .scan-line {
+            position: absolute;
+            top: 0; left: 0; width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, transparent 0%, #ffd700 50%, transparent 100%);
+            box-shadow: 0 0 20px #ffd700, 0 0 40px rgba(255,215,0,0.4);
+            animation: scanDown 2s ease-in-out infinite;
+        }
+        @keyframes scanDown {
+            0% { top: 0; }
+            50% { top: 100%; }
+            100% { top: 0; }
+        }
+
+        .analyzing-text {
+            font-size: 1.6rem;
+            color: #ffd700;
+            letter-spacing: 3px;
+            text-shadow: 0 0 20px rgba(255,215,0,0.6);
+            animation: textGlow 1.5s ease-in-out infinite;
+        }
+        @keyframes textGlow {
+            0%, 100% { opacity: 1; text-shadow: 0 0 20px rgba(255,215,0,0.6); }
+            50% { opacity: 0.7; text-shadow: 0 0 40px rgba(255,215,0,0.9); }
+        }
+
+        .analyzing-step {
+            margin-top: 12px;
+            font-size: 0.9rem;
+            color: #c4a35a;
+            letter-spacing: 2px;
+        }
+
+        /* ── 按钮区 ── */
+        .btn-area {
+            display: flex;
+            gap: 16px;
+            margin: 14px 0;
+            z-index: 1;
+        }
+        .btn-fortune {
+            padding: 20px 60px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 6px;
+            color: #1a0a0a;
+            background: linear-gradient(135deg, #ffd700 0%, #ff8c00 50%, #ffd700 100%);
+            background-size: 200% 200%;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 30px rgba(255,215,0,0.4);
+            font-family: inherit;
+            animation: btnShine 3s ease-in-out infinite;
+        }
+        @keyframes btnShine {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        .btn-fortune:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 6px 40px rgba(255,215,0,0.6);
+        }
+        .btn-fortune:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            animation: none;
+        }
+
+        .btn-retry {
+            display: none;
+            padding: 14px 36px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: #ffd700;
+            background: transparent;
+            border: 2px solid rgba(255,215,0,0.5);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        .btn-retry:hover {
+            background: rgba(255,215,0,0.1);
+            border-color: #ffd700;
+        }
+
+        /* ── 结果卡片 ── */
+        .result-card {
+            display: none;
+            max-width: min(1120px, 92vw);
+            width: 100%;
+            padding: 0;
+            background: linear-gradient(180deg, rgba(255,215,0,0.06) 0%, rgba(139,0,0,0.06) 100%);
+            border: 1px solid rgba(255,215,0,0.2);
+            border-radius: 16px;
+            margin: 10px 0 20px;
+            overflow: hidden;
+            z-index: 1;
+            animation: fadeInUp 0.6s ease-out;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .result-card.visible { display: block; }
+
+        .result-fortune-box {
+            padding: 28px 24px 20px;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(255,215,0,0.08) 0%, transparent 100%);
+            border-bottom: 1px solid rgba(255,215,0,0.1);
+        }
+        .fortune-label {
+            font-size: 0.8rem;
+            color: #c4a35a;
+            letter-spacing: 6px;
+            margin-bottom: 12px;
+        }
+        .result-fortune {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ffd700;
+            line-height: 2;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(255,215,0,0.3);
+        }
+        .tech-meme {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: #ff8c00;
+            letter-spacing: 1px;
+        }
+
+        /* 圈注图区域 */
+        .annotated-section {
+            padding: 20px;
+            text-align: center;
+        }
+        .section-title {
+            font-size: 0.8rem;
+            color: #c4a35a;
+            letter-spacing: 4px;
+            margin-bottom: 12px;
+        }
+        .result-annotated {
+            max-width: 100%;
+            border-radius: 10px;
+            border: 1px solid rgba(255,215,0,0.15);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        /* 特征详情 */
+        .features-section {
+            padding: 16px 24px 20px;
+            border-top: 1px solid rgba(255,215,0,0.1);
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .feature-item {
+            padding: 10px 12px;
+            background: rgba(255,215,0,0.04);
+            border: 1px solid rgba(255,215,0,0.08);
+            border-radius: 8px;
+        }
+        .feature-dim {
+            font-size: 0.75rem;
+            color: #c4a35a;
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+        }
+        .feature-desc {
+            font-size: 0.85rem;
+            color: #e0d5c0;
+            line-height: 1.5;
+        }
+
+        /* 匹配规则 */
+        .rules-section {
+            padding: 12px 24px 20px;
+            border-top: 1px solid rgba(255,215,0,0.1);
+        }
+        .rule-tag {
+            display: inline-block;
+            margin: 4px 6px 4px 0;
+            padding: 4px 12px;
+            background: rgba(255,215,0,0.08);
+            border: 1px solid rgba(255,215,0,0.15);
+            border-radius: 20px;
+            font-size: 0.78rem;
+            color: #c4a35a;
+        }
+
+        /* ── 底部 ── */
+        .footer {
+            margin-top: auto;
+            padding: 16px;
+            font-size: 0.72rem;
+            color: #443;
+            z-index: 1;
+            letter-spacing: 1px;
+        }
+
+        .loading-hint {
+            color: #c4a35a;
+            font-size: 0.9rem;
+            z-index: 1;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>AI 相面</h1>
+        <div class="subtitle">春晚特别版 · 硅谷科技圈专属</div>
+        <div class="year-badge">马年大吉 · 2026 春节</div>
+    </div>
+
+    <div class="camera-container" id="cameraContainer">
+        <video id="video" autoplay playsinline></video>
+        <canvas id="overlay"></canvas>
+        <div class="face-count" id="faceCount" style="display:none;"></div>
+        <!-- 分析中覆盖层 -->
+        <div class="analyzing-overlay" id="analyzingOverlay">
+            <div class="scan-line"></div>
+            <div class="analyzing-text" id="analyzingText">正在解析面相...</div>
+            <div class="analyzing-step" id="analyzingStep"></div>
+        </div>
+    </div>
+
+    <div class="loading-hint" id="loadingHint">正在加载人脸检测模型...</div>
+
+    <div class="btn-area">
+        <button class="btn-fortune" id="btnFortune" disabled>AI 相面</button>
+        <button class="btn-retry" id="btnRetry">再来一次</button>
+    </div>
+
+    <div class="result-card" id="resultCard">
+        <div class="result-fortune-box">
+            <div class="fortune-label">— 判 词 —</div>
+            <div class="result-fortune" id="resultFortune"></div>
+            <div class="tech-meme" id="techMeme"></div>
+        </div>
+        <div class="annotated-section" id="annotatedSection" style="display:none;">
+            <div class="section-title">— 面相特征标注 —</div>
+            <img class="result-annotated" id="resultImage" alt="特征圈注图" />
+        </div>
+        <div class="features-section">
+            <div class="section-title">— 五维面相分析 —</div>
+            <div class="feature-grid" id="featureGrid"></div>
+        </div>
+        <div class="rules-section" id="rulesSection" style="display:none;">
+            <div class="section-title">— 命中规则 —</div>
+            <div id="rulesTags"></div>
+        </div>
+    </div>
+
+    <div class="footer">Powered by AI Builders MCP · grok-4-fast · 仅供娱乐</div>
+
+    <script>
+        // ══════════════════════════════════════
+        // 全局状态
+        // ══════════════════════════════════════
+        const video = document.getElementById('video');
+        const overlay = document.getElementById('overlay');
+        const ctx = overlay.getContext('2d');
+        const btnFortune = document.getElementById('btnFortune');
+        const btnRetry = document.getElementById('btnRetry');
+        const resultCard = document.getElementById('resultCard');
+        const resultFortune = document.getElementById('resultFortune');
+        const resultImage = document.getElementById('resultImage');
+        const featureGrid = document.getElementById('featureGrid');
+        const faceCountEl = document.getElementById('faceCount');
+        const loadingHint = document.getElementById('loadingHint');
+        const analyzingOverlay = document.getElementById('analyzingOverlay');
+        const analyzingText = document.getElementById('analyzingText');
+        const analyzingStep = document.getElementById('analyzingStep');
+        const techMeme = document.getElementById('techMeme');
+        const annotatedSection = document.getElementById('annotatedSection');
+        const rulesSection = document.getElementById('rulesSection');
+        const rulesTags = document.getElementById('rulesTags');
+
+        let cameraReady = false;
+        let faceDetector = null;
+        let detecting = false;
+        let lastDetections = [];
+        const MIN_FACE_RATIO = 0.08;
+
+        // 后端 API 地址（同域或跨域均可）
+        const API_BASE = '';
+
+        // ══════════════════════════════════════
+        // 1. MediaPipe FaceDetector 初始化
+        // ══════════════════════════════════════
+        async function initFaceDetector() {
+            try {
+                const vision = await FilesetResolver.forVisionTasks(
+                    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm"
+                );
+                faceDetector = await FaceDetector.createFromOptions(vision, {
+                    baseOptions: {
+                        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite",
+                        delegate: "GPU"
+                    },
+                    runningMode: "VIDEO",
+                    minDetectionConfidence: 0.5,
+                    minSuppressionThreshold: 0.3
+                });
+                console.log('[FaceDetector] 模型加载完成');
+                loadingHint.style.display = 'none';
+                return true;
+            } catch (err) {
+                console.error('[FaceDetector] 模型加载失败:', err);
+                loadingHint.textContent = '人脸检测模型加载失败，请刷新重试';
+                return false;
+            }
+        }
+
+        // ══════════════════════════════════════
+        // 2. 摄像头初始化
+        // ══════════════════════════════════════
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' }
+                });
+                video.srcObject = stream;
+                await new Promise(resolve => {
+                    video.addEventListener('loadeddata', resolve, { once: true });
+                });
+                overlay.width = video.videoWidth;
+                overlay.height = video.videoHeight;
+                cameraReady = true;
+                console.log('[Camera] 摄像头已就绪:', video.videoWidth, 'x', video.videoHeight);
+                return true;
+            } catch (err) {
+                console.error('[Camera] 摄像头启动失败:', err);
+                loadingHint.textContent = '请允许摄像头权限后刷新页面';
+                return false;
+            }
+        }
+
+        // ══════════════════════════════════════
+        // 3. 人脸检测循环
+        // ══════════════════════════════════════
+        let lastVideoTime = -1;
+
+        function detectFaces() {
+            if (!cameraReady || !faceDetector || detecting) {
+                requestAnimationFrame(detectFaces);
+                return;
+            }
+
+            if (video.currentTime !== lastVideoTime) {
+                lastVideoTime = video.currentTime;
+                try {
+                    const result = faceDetector.detectForVideo(video, performance.now());
+                    lastDetections = result.detections || [];
+                } catch (e) {}
+            }
+
+            drawDetections(lastDetections);
+            requestAnimationFrame(detectFaces);
+        }
+
+        // ══════════════════════════════════════
+        // 4. 绘制追踪框
+        // ══════════════════════════════════════
+        function drawDetections(detections) {
+            ctx.clearRect(0, 0, overlay.width, overlay.height);
+            const videoW = overlay.width;
+            const videoH = overlay.height;
+            const minFaceW = videoW * MIN_FACE_RATIO;
+
+            const validFaces = detections.filter(d => {
+                const bb = d.boundingBox;
+                return bb && bb.width >= minFaceW;
+            });
+
+            if (validFaces.length > 0) {
+                faceCountEl.style.display = 'block';
+                faceCountEl.textContent = `检测到 ${validFaces.length} 人`;
+            } else {
+                faceCountEl.style.display = 'none';
+            }
+
+            validFaces.forEach((det, idx) => {
+                const bb = det.boundingBox;
+                const score = det.categories?.[0]?.score || 0;
+                const x = bb.originX, y = bb.originY, w = bb.width, h = bb.height;
+
+                // 外框
+                ctx.strokeStyle = 'rgba(255,215,0,0.7)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, w, h);
+
+                // 四角装饰
+                const cornerLen = Math.min(w, h) * 0.15;
+                ctx.strokeStyle = '#ff6b35';
+                ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(x, y + cornerLen); ctx.lineTo(x, y); ctx.lineTo(x + cornerLen, y); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(x + w - cornerLen, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + cornerLen); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(x, y + h - cornerLen); ctx.lineTo(x, y + h); ctx.lineTo(x + cornerLen, y + h); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(x + w - cornerLen, y + h); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w, y + h - cornerLen); ctx.stroke();
+
+                // 标签（取景框镜像，需反转绘制使文字正向显示）
+                const label = `面相 #${idx + 1}  ${(score * 100).toFixed(0)}%`;
+                ctx.font = 'bold 15px "PingFang SC", sans-serif';
+                const tw = ctx.measureText(label).width;
+                ctx.save();
+                ctx.translate(videoW, 0);
+                ctx.scale(-1, 1);
+                ctx.translate(-videoW, 0);
+                ctx.fillStyle = 'rgba(255, 107, 53, 0.85)';
+                ctx.fillRect(x, y - 26, tw + 14, 24);
+                ctx.fillStyle = '#fff';
+                ctx.fillText(label, x + 7, y - 8);
+                ctx.restore();
+
+                // 关键点
+                if (det.keypoints) {
+                    det.keypoints.forEach(kp => {
+                        ctx.beginPath();
+                        ctx.arc(kp.x * videoW, kp.y * videoH, 3, 0, Math.PI * 2);
+                        ctx.fillStyle = '#00ff88';
+                        ctx.fill();
+                    });
+                }
+            });
+        }
+
+        // ══════════════════════════════════════
+        // 5. 截图
+        // ══════════════════════════════════════
+        function captureFrame() {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            return canvas.toDataURL('image/png');
+        }
+
+        // ══════════════════════════════════════
+        // 6. 分析动画
+        // ══════════════════════════════════════
+        const ANALYSIS_STAGES = [
+            { text: '正在捕捉面部特征...', step: '启动 AI 相面引擎' },
+            { text: '正在查看印堂气象...', step: '印堂 · 心性运势' },
+            { text: '正在分析眉眼神态...', step: '眉眼 · 精气神判' },
+            { text: '正在查看鼻翼颧骨...', step: '鼻相 · 财运之源' },
+            { text: '正在查看嘴角下巴...', step: '嘴下巴 · 福禄根基' },
+            { text: '正在综合五维气色...', step: '整体气色 · 终合评判' },
+            { text: '正在匹配知识库...', step: '面相知识库比对中' },
+            { text: '正在生成判词...', step: '即将揭晓...' },
+        ];
+
+        let stageTimers = [];
+
+        function showAnalysisStages() {
+            analyzingOverlay.classList.add('active');
+            const interval = 1000;
+            ANALYSIS_STAGES.forEach((stage, i) => {
+                const t = setTimeout(() => {
+                    analyzingText.textContent = stage.text;
+                    analyzingStep.textContent = stage.step;
+                }, i * interval);
+                stageTimers.push(t);
+            });
+        }
+
+        function hideAnalysisStages() {
+            analyzingOverlay.classList.remove('active');
+            stageTimers.forEach(t => clearTimeout(t));
+            stageTimers = [];
+        }
+
+        // ══════════════════════════════════════
+        // 7. 显示结果
+        // ══════════════════════════════════════
+        function showResult(data) {
+            // 判词
+            resultFortune.textContent = data.fortune || '福星高照，前途无量';
+
+            // 科技梗
+            if (data.tech_meme_used && data.tech_meme_used !== 'null' && data.tech_meme_used !== null) {
+                techMeme.textContent = `[${data.tech_meme_used}]`;
+                techMeme.style.display = 'block';
+            } else {
+                techMeme.style.display = 'none';
+            }
+
+            // 圈注图
+            if (data.annotated_image && data.annotated_image.startsWith('data:image')) {
+                resultImage.src = data.annotated_image;
+                annotatedSection.style.display = 'block';
+            } else {
+                annotatedSection.style.display = 'none';
+            }
+
+            // 五维特征
+            featureGrid.innerHTML = '';
+            const dimLabels = {
+                '印堂': '印堂 · 心性',
+                '眉眼神态': '眉眼 · 精神',
+                '鼻翼鼻头': '鼻相 · 财运',
+                '嘴角下巴': '嘴下巴 · 福禄',
+                '整体气色': '气色 · 综合'
+            };
+            if (data.features) {
+                Object.entries(data.features).forEach(([k, v]) => {
+                    const item = document.createElement('div');
+                    item.className = 'feature-item';
+                    item.innerHTML = `
+                        <div class="feature-dim">${dimLabels[k] || k}</div>
+                        <div class="feature-desc">${v}</div>
+                    `;
+                    featureGrid.appendChild(item);
+                });
+            }
+
+            // 命中规则
+            if (data.matched_rules && data.matched_rules.length > 0) {
+                rulesTags.innerHTML = '';
+                data.matched_rules.forEach(r => {
+                    const tag = document.createElement('span');
+                    tag.className = 'rule-tag';
+                    tag.textContent = `${r.dimension}: ${r.feature}`;
+                    tag.title = r.meaning || '';
+                    rulesTags.appendChild(tag);
+                });
+                rulesSection.style.display = 'block';
+            } else {
+                rulesSection.style.display = 'none';
+            }
+
+            resultCard.classList.add('visible');
+            resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // ══════════════════════════════════════
+        // 8. AI 相面主流程
+        // ══════════════════════════════════════
+        btnFortune.addEventListener('click', async () => {
+            if (!cameraReady) return;
+
+            btnFortune.disabled = true;
+            btnRetry.style.display = 'none';
+            resultCard.classList.remove('visible');
+
+            const imageData = captureFrame();
+            showAnalysisStages();
+
+            try {
+                const resp = await fetch(`${API_BASE}/api/fortune`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: imageData }),
+                });
+
+                if (!resp.ok) {
+                    const err = await resp.json();
+                    throw new Error(err.detail || '请求失败');
+                }
+
+                const data = await resp.json();
+                console.log('[Fortune] 响应:', data);
+
+                hideAnalysisStages();
+                showResult(data);
+                btnRetry.style.display = 'inline-block';
+
+            } catch (err) {
+                console.error('[Fortune] 错误:', err);
+                hideAnalysisStages();
+                analyzingOverlay.classList.add('active');
+                analyzingText.textContent = '分析失败，请重试';
+                analyzingStep.textContent = err.message;
+                setTimeout(() => hideAnalysisStages(), 3000);
+            } finally {
+                btnFortune.disabled = false;
+            }
+        });
+
+        // "再来一次"按钮
+        btnRetry.addEventListener('click', () => {
+            resultCard.classList.remove('visible');
+            btnRetry.style.display = 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // ══════════════════════════════════════
+        // 启动
+        // ══════════════════════════════════════
+        async function boot() {
+            const [camOk, detOk] = await Promise.all([initCamera(), initFaceDetector()]);
+            if (camOk && detOk) {
+                btnFortune.disabled = false;
+                detectFaces();
+                console.log('[Boot] 系统就绪');
+            }
+        }
+
+        if (window.FilesetResolver && window.FaceDetector) {
+            boot();
+        } else {
+            window.addEventListener('mediapipe-ready', () => boot());
+        }
+    </script>
+</body>
+</html>
