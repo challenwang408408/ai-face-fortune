@@ -15,11 +15,21 @@ from pathlib import Path
 
 import httpx
 
+# 从项目根目录加载 .env（在读取 Token 之前）
+_env_path = Path(__file__).resolve().parents[2].parent / ".env"
+if _env_path.exists():
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(_env_path)
+    except ImportError:
+        pass
+
 logger = logging.getLogger("ai_fortune")
 
 # ── AI Builders 配置（必须通过环境变量设置，切勿提交到 Git） ──
 AI_BUILDER_BASE = os.getenv("AI_BUILDER_BASE", "https://space.ai-builders.com/backend/v1")
-AI_BUILDER_TOKEN = os.getenv("AI_BUILDER_TOKEN")  # 必填，见 .env.example
+_tok = os.getenv("AI_BUILDER_TOKEN")
+AI_BUILDER_TOKEN = (_tok or "").strip() or None  # 去除首尾空格/换行
 AI_MODEL = os.getenv("AI_MODEL", "grok-4-fast")
 
 # ── 知识库 ──
@@ -42,8 +52,13 @@ def _build_unified_prompt(rules: dict) -> str:
             templates = "；".join(rule.get("fortune_templates", [])[:2])
             rules_summary += f"  · {rule['feature']} → {meaning}（参考：{templates}）\n"
 
-    tech_memes = " | ".join(rules.get("tech_memes", []))
+    tech_memes_list = rules.get("tech_memes", [])
+    tech_memes = " | ".join(tech_memes_list)
     forbidden = "、".join(rules["rewrite_rules"]["forbidden_words"])
+
+    # 每次随机抽取 3 个梗作为优先推荐，强制多样化
+    preferred = random.sample(tech_memes_list, min(3, len(tech_memes_list)))
+    preferred_hint = "本次建议优先考虑：[" + "、".join(preferred) + "]"
 
     return f"""你是春节联欢晚会的 AI 相面大师。请看图完成以下三步，一次性输出结果。
 
@@ -55,8 +70,10 @@ def _build_unified_prompt(rules: dict) -> str:
 ## 面相知识库规则（必须严格按规则匹配，不可套用模板）
 {rules_summary}
 
-## 可用科技梗（每次选用不同梗，避免重复）
+## 可用科技梗
 {tech_memes}
+
+{preferred_hint}
 
 ## 硬性要求
 - 禁止出现负面词汇：{forbidden}
@@ -64,7 +81,7 @@ def _build_unified_prompt(rules: dict) -> str:
 - 判词 20-30 字
 - **特征描述必须客观、具体，基于图片中实际可见的面部细节**
 - **判词必须严格基于本次命中的规则，不同人面相不同则判词应有明显差异**
-- 科技梗每次尽量选用不同的，避免总是用同几个
+- **科技梗必须从「本次建议优先考虑」中选用，或从完整列表中挑选，避免总是用同一梗**
 
 ## 输出格式（严格 JSON，不含 markdown 代码块）
 {{
