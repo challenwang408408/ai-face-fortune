@@ -324,6 +324,26 @@
             background: rgba(255,215,0,0.1);
             border-color: #ffd700;
         }
+        .btn-share {
+            display: none;
+            padding: 10px 24px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            background: transparent;
+            border: 1px solid var(--panel-border);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            margin-left: 12px;
+        }
+        .btn-share:hover {
+            background: rgba(255,215,0,0.08);
+            border-color: var(--panel-border-strong);
+            color: var(--text-main);
+        }
         .action-hint {
             min-height: 24px;
             color: #ddc188;
@@ -783,6 +803,7 @@
         <button class="btn-fortune" id="btnFortune" disabled type="button">AI 相面</button>
         <button class="btn-cancel" id="btnCancel" type="button">取消分析</button>
         <button class="btn-retry" id="btnRetry" type="button">再来一次</button>
+        <button class="btn-share" id="btnShare" type="button">分享结果</button>
     </div>
     <div class="action-hint" id="actionHint" role="status" aria-live="polite">初始化中，请稍候…</div>
 
@@ -825,6 +846,7 @@
         const btnFortune = document.getElementById('btnFortune');
         const btnRetry = document.getElementById('btnRetry');
         const btnCancel = document.getElementById('btnCancel');
+        const btnShare = document.getElementById('btnShare');
         const btnRetryPermission = document.getElementById('btnRetryPermission');
         const uploadInput = document.getElementById('uploadInput');
         const permissionActions = document.getElementById('permissionActions');
@@ -1480,8 +1502,17 @@
 
             if (!resp.ok) {
                 const detail = data.detail || data.message || '请求失败';
-                if (detail.includes('图片过小') || detail.includes('图片格式无效')) {
+                // 根据状态码和错误信息分类错误
+                if (resp.status === 400) {
+                    if (detail.includes('图片过小') || detail.includes('图片格式无效') || detail.includes('图片') || detail.includes('人脸') || detail.includes('清晰')) {
+                        throw createAppError('IMAGE_INVALID', detail);
+                    }
                     throw createAppError('IMAGE_INVALID', detail);
+                }
+                if (resp.status === 500) {
+                    if (detail.includes('配置错误') || detail.includes('Token') || detail.includes('AI_BUILDER')) {
+                        throw createAppError('SERVICE_FAILURE', '服务配置错误，请联系管理员');
+                    }
                 }
                 throw createAppError('SERVICE_FAILURE', detail);
             }
@@ -1561,6 +1592,7 @@
         }
 
         function showResult(data, options = {}) {
+            currentResultData = data;
             resultFortune.textContent = data.fortune || '福星高照，前途无量';
 
             if (data.tech_meme_used && data.tech_meme_used !== 'null') {
@@ -1618,6 +1650,7 @@
             resultCard.classList.add('visible');
             document.body.classList.add('has-result');
             btnRetry.style.display = 'inline-flex';
+            btnShare.style.display = 'inline-flex';
             setActionHint('分析完成，可查看证据链或点击「再来一次」', 'ok');
 
             if (!options.fromHistory) {
@@ -1632,7 +1665,64 @@
             resultCard.classList.remove('visible');
             document.body.classList.remove('has-result');
             btnRetry.style.display = 'none';
+            btnShare.style.display = 'none';
             setActionHint('请将面部置于取景框中央后重新分析');
+        }
+
+        let currentResultData = null;
+
+        async function shareResult() {
+            if (!currentResultData) {
+                setActionHint('暂无结果可分享', 'error');
+                return;
+            }
+
+            const fortune = currentResultData.fortune || '福星高照，前途无量';
+            const techMeme = currentResultData.tech_meme_used ? `[${currentResultData.tech_meme_used}]` : '';
+            const shareText = `AI 相面结果：${fortune} ${techMeme}\n\n来自 AI 相面 - 春晚特别版`;
+
+            try {
+                // 尝试使用 Web Share API
+                if (navigator.share) {
+                    await navigator.share({
+                        title: 'AI 相面结果',
+                        text: shareText,
+                        url: window.location.href,
+                    });
+                    setActionHint('分享成功！', 'ok');
+                    trackEvent('share:web-api');
+                    return;
+                }
+
+                // 降级方案：复制到剪贴板
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(shareText);
+                    setActionHint('结果已复制到剪贴板，可以粘贴分享', 'ok');
+                    trackEvent('share:clipboard');
+                } else {
+                    // 最后的降级方案：显示文本让用户手动复制
+                    const textarea = document.createElement('textarea');
+                    textarea.value = shareText;
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    try {
+                        document.execCommand('copy');
+                        setActionHint('结果已复制到剪贴板', 'ok');
+                        trackEvent('share:exec-command');
+                    } catch (err) {
+                        setActionHint('请手动复制结果文本', 'error');
+                    }
+                    document.body.removeChild(textarea);
+                }
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error('[Share] 分享失败:', err);
+                    setActionHint('分享失败，请稍后重试', 'error');
+                    trackEvent('share:error', { message: err.message });
+                }
+            }
         }
 
         async function analyzeWithImage(imageData, meta) {
@@ -1722,6 +1812,10 @@
         btnRetry.addEventListener('click', () => {
             resetResultView();
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        btnShare.addEventListener('click', async () => {
+            await shareResult();
         });
 
         btnRetryPermission.addEventListener('click', async () => {

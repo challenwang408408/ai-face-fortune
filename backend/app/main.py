@@ -65,6 +65,8 @@ def get_rules():
 # ── 数据模型 ──
 class FortuneRequest(BaseModel):
     image: str  # base64 data URI
+    source: str = "camera"  # 来源: "camera" 或 "upload"
+    target_face_bbox: dict | None = None  # 目标人脸边界框（可选）
 
 class FortuneResponse(BaseModel):
     features: dict
@@ -119,12 +121,25 @@ async def get_fortune(req: FortuneRequest):
         logger.warning("[请求] 校验失败: 格式异常 前缀=%s", req.image[:50])
         raise HTTPException(status_code=400, detail="图片格式无效")
 
-    logger.info("[请求] 校验通过，开始调用 analyze_face")
+    logger.info("[请求] 校验通过，开始调用 analyze_face source=%s", req.source)
     try:
         result = await analyze_face(req.image)
+    except ValueError as e:
+        # 配置错误（如缺少 Token）
+        logger.error("[请求] 配置错误: %s", str(e))
+        raise HTTPException(status_code=500, detail=f"服务配置错误: {str(e)}")
+    except RuntimeError as e:
+        # AI API 调用失败
+        error_msg = str(e)
+        logger.error("[请求] AI 分析失败: %s", error_msg, exc_info=True)
+        # 判断是否是图片质量问题
+        if "图片" in error_msg or "人脸" in error_msg or "清晰" in error_msg:
+            raise HTTPException(status_code=400, detail=error_msg)
+        raise HTTPException(status_code=500, detail=error_msg)
     except Exception as e:
-        logger.error("[请求] AI 相面失败: %s", str(e), exc_info=True)
-        raise HTTPException(status_code=500, detail=f"AI 分析失败: {str(e)}")
+        # 其他未知错误
+        logger.error("[请求] 未知错误: %s", str(e), exc_info=True)
+        raise HTTPException(status_code=500, detail=f"分析过程中发生错误，请稍后重试: {str(e)}")
 
     # ── 生成特征圈注图 ──
     annotated_image = ""
