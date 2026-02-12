@@ -120,11 +120,18 @@ async def _call_ai_builders(messages: list, trace_label: str) -> dict:
     }
 
     start = time.time()
-    logger.info("[MCP调用] %s - 开始请求 model=%s", trace_label, AI_MODEL)
+    # 计算 payload 大小（含图片 base64）
+    payload_size = len(json.dumps(payload))
+    logger.info("[MCP调用] %s - 开始请求 model=%s url=%s payload_size=%d", trace_label, AI_MODEL, url, payload_size)
 
     async with httpx.AsyncClient(timeout=60.0) as client:
         resp = await client.post(url, json=payload, headers=headers)
-        resp.raise_for_status()
+        if resp.status_code != 200:
+            err_body = resp.text[:800]
+            logger.error("[MCP调用] %s 失败 status=%s body=%s", trace_label, resp.status_code, err_body)
+            raise RuntimeError(
+                "AI 分析失败，请确保人脸在取景框内清晰完整、光线充足，然后重试。"
+            )
         data = resp.json()
 
     elapsed = time.time() - start
@@ -175,7 +182,7 @@ async def analyze_face(image_base64: str) -> dict:
     rules = _load_rules()
     trace = {"mcp_calls": []}
 
-    logger.info("═══ AI 相面开始（单次调用模式）═══")
+    logger.info("═══ AI 相面开始（单次调用模式）═══ 图片长度=%d", len(image_base64))
 
     # 每次请求注入唯一标识，避免模型对相似输入返回缓存式相同结果
     request_id = random.randint(100000, 999999)
@@ -201,7 +208,11 @@ async def analyze_face(image_base64: str) -> dict:
         "usage": result["usage"]
     })
 
-    data = _parse_json_response(result["content"])
+    try:
+        data = _parse_json_response(result["content"])
+    except json.JSONDecodeError as e:
+        logger.error("[解析] AI 返回 JSON 解析失败: %s 原始内容前500=%s", e, result["content"][:500])
+        raise
 
     features = data.get("features", {})
     fortune = data.get("fortune", "福星高照，前途无量")

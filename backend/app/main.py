@@ -106,12 +106,24 @@ async def get_fortune(req: FortuneRequest):
     """
     from app.services.fortune_pipeline import analyze_face
 
-    logger.info("收到 AI 相面请求，图片大小: %d 字符", len(req.image))
+    logger.info("[请求] 收到 AI 相面 图片长度=%d 前缀=%s", len(req.image), req.image[:80] + "..." if len(req.image) > 80 else req.image)
 
+    # 图片有效性校验：过小或格式异常会导致 AI API 返回 400
+    if len(req.image) < 5000:
+        logger.warning("[请求] 校验失败: 图片过小 len=%d", len(req.image))
+        raise HTTPException(
+            status_code=400,
+            detail="图片过小或无效，请确保人脸在取景框内清晰可见后再点击「AI 相面」",
+        )
+    if not req.image.startswith("data:image/"):
+        logger.warning("[请求] 校验失败: 格式异常 前缀=%s", req.image[:50])
+        raise HTTPException(status_code=400, detail="图片格式无效")
+
+    logger.info("[请求] 校验通过，开始调用 analyze_face")
     try:
         result = await analyze_face(req.image)
     except Exception as e:
-        logger.error("AI 相面失败: %s", str(e), exc_info=True)
+        logger.error("[请求] AI 相面失败: %s", str(e), exc_info=True)
         raise HTTPException(status_code=500, detail=f"AI 分析失败: {str(e)}")
 
     # ── 生成特征圈注图 ──
@@ -119,10 +131,11 @@ async def get_fortune(req: FortuneRequest):
     try:
         from app.services.face_annotator import annotate_face as annotate
         annotated_image = annotate(req.image, result["features"])
-        logger.info("特征圈注图生成成功")
+        logger.info("[请求] 特征圈注图生成成功")
     except Exception as e:
         logger.error("特征圈注图生成失败（不影响主流程）: %s", str(e), exc_info=True)
 
+    logger.info("[请求] AI 相面完成 fortune=%s", (result.get("fortune") or "")[:50])
     return {
         "features": result["features"],
         "fortune": result["fortune"],

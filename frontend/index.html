@@ -64,6 +64,39 @@
             margin-top: 6px;
             letter-spacing: 4px;
         }
+        .homeLink {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: rgba(26, 10, 10, 0.9);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 999px;
+            color: #c4a35a;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+        .homeLink:hover {
+            background: rgba(255, 215, 0, 0.1);
+            color: #ffd700;
+            border-color: rgba(255, 215, 0, 0.4);
+            text-decoration: none;
+        }
+        .homeLink__icon {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            stroke: currentColor;
+        }
+        .header {
+            position: relative;
+        }
         .header .year-badge {
             display: inline-block;
             margin-top: 4px;
@@ -78,7 +111,7 @@
         /* ── 取景框（门口展示，适合围观） ── */
         .camera-container {
             position: relative;
-            width: min(1120px, 92vw);
+            width: min(720px, 88vw);
             aspect-ratio: 4/3;
             border: 2px solid rgba(255, 215, 0, 0.35);
             border-radius: 16px;
@@ -368,6 +401,12 @@
 </head>
 <body>
     <div class="header">
+        <a class="homeLink" href="https://challenwang.com" rel="noopener" aria-label="回到首页">
+            <svg class="homeLink__icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M8 1L2 6v8h3v-5h6v5h3V6L8 1z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
+            <span class="homeLink__text">回到首页</span>
+        </a>
         <h1>AI 相面</h1>
         <div class="subtitle">春晚特别版 · 硅谷科技圈专属</div>
         <div class="year-badge">马年大吉 · 2026 春节</div>
@@ -590,11 +629,24 @@
         // 5. 截图
         // ══════════════════════════════════════
         function captureFrame() {
+            const w = video.videoWidth;
+            const h = video.videoHeight;
+            console.log('[Capture] 开始截图 video尺寸:', w, 'x', h);
+            if (!w || !h) {
+                console.warn('[Capture] 视频尺寸无效:', w, h);
+                return null;
+            }
             const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            canvas.width = w;
+            canvas.height = h;
             canvas.getContext('2d').drawImage(video, 0, 0);
-            return canvas.toDataURL('image/png');
+            const dataUrl = canvas.toDataURL('image/png');
+            console.log('[Capture] 截图完成 base64长度:', dataUrl.length, '前50字符:', dataUrl.slice(0, 50));
+            if (dataUrl.length < 5000) {
+                console.warn('[Capture] 截图过小:', dataUrl.length);
+                return null;
+            }
+            return dataUrl;
         }
 
         // ══════════════════════════════════════
@@ -705,6 +757,16 @@
             resultCard.classList.remove('visible');
 
             const imageData = captureFrame();
+            if (!imageData) {
+                console.error('[Fortune] captureFrame 返回 null');
+                analyzingOverlay.classList.add('active');
+                analyzingText.textContent = '截图失败';
+                analyzingStep.textContent = '请确保人脸在取景框内清晰可见';
+                setTimeout(() => hideAnalysisStages(), 3000);
+                btnFortune.disabled = false;
+                return;
+            }
+            console.log('[Fortune] 开始请求 API_BASE=', API_BASE || '(空即同域)', 'body长度:', JSON.stringify({ image: imageData }).length);
             showAnalysisStages();
 
             try {
@@ -714,20 +776,37 @@
                     body: JSON.stringify({ image: imageData }),
                 });
 
-                if (!resp.ok) {
-                    const err = await resp.json();
-                    throw new Error(err.detail || '请求失败');
+                const contentType = resp.headers.get('content-type') || '';
+                const rawText = await resp.text();
+
+                console.log('[Fortune] 响应 status=', resp.status, 'contentType=', contentType, 'rawText长度=', rawText.length, 'rawText前200=', rawText.slice(0, 200));
+
+                if (!contentType.includes('application/json')) {
+                    console.error('[Fortune] 非 JSON 响应 完整内容:', rawText.slice(0, 500));
+                    throw new Error('服务返回异常，请稍后重试');
                 }
 
-                const data = await resp.json();
-                console.log('[Fortune] 响应:', data);
+                let data;
+                try {
+                    data = JSON.parse(rawText);
+                } catch (e) {
+                    console.error('[Fortune] JSON 解析失败 rawText=', rawText.slice(0, 500));
+                    throw new Error('服务返回异常，请稍后重试');
+                }
+
+                if (!resp.ok) {
+                    console.error('[Fortune] resp.ok=false detail=', data.detail);
+                    throw new Error(data.detail || data.message || '请求失败');
+                }
+
+                console.log('[Fortune] 成功 data.fortune=', data.fortune?.slice(0, 50));
 
                 hideAnalysisStages();
                 showResult(data);
                 btnRetry.style.display = 'inline-block';
 
             } catch (err) {
-                console.error('[Fortune] 错误:', err);
+                console.error('[Fortune] 捕获异常:', err.name, err.message, err.stack);
                 hideAnalysisStages();
                 analyzingOverlay.classList.add('active');
                 analyzingText.textContent = '分析失败，请重试';
