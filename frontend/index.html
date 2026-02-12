@@ -6,26 +6,51 @@
     <title>AI 相面 - 春晚特别版</title>
     <!-- MediaPipe Tasks Vision (module 方式) -->
     <script type="module">
-        import {FilesetResolver, FaceDetector} from
+        import {FaceDetector, FilesetResolver} from
             "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/+esm";
+
         window.FilesetResolver = FilesetResolver;
         window.FaceDetector = FaceDetector;
         window.dispatchEvent(new Event('mediapipe-ready'));
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@700;900&display=swap');
+
+        :root {
+            --bg-0: #0a0607;
+            --bg-1: #180b0c;
+            --bg-2: #251012;
+            --surface-0: rgba(35, 18, 16, 0.62);
+            --surface-1: rgba(56, 28, 22, 0.72);
+            --text-main: #f4e5c5;
+            --text-muted: #d5b97f;
+            --text-subtle: #927a53;
+            --accent: #f8cb63;
+            --accent-soft: #e59b3d;
+            --ok: #89d79c;
+            --danger: #ff7d68;
+            --panel-border: rgba(255, 223, 128, 0.25);
+            --panel-border-strong: rgba(255, 223, 128, 0.42);
+            --ease-out: cubic-bezier(.2, .72, .2, 1);
+        }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: "Noto Serif SC", "PingFang SC", "Microsoft YaHei", serif;
-            background: radial-gradient(ellipse at top, #1a0a0a 0%, #0a0205 60%, #000 100%);
-            color: #f0e6d3;
+            font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: radial-gradient(ellipse at top, var(--bg-2) 0%, var(--bg-1) 58%, var(--bg-0) 100%);
+            color: var(--text-main);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             overflow-x: hidden;
+            transition: background 0.5s var(--ease-out);
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
         }
 
         /* ── 背景装饰粒子 ── */
@@ -34,10 +59,10 @@
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background:
-                radial-gradient(2px 2px at 20% 30%, rgba(255,215,0,0.3) 0%, transparent 100%),
-                radial-gradient(2px 2px at 70% 20%, rgba(255,107,53,0.2) 0%, transparent 100%),
-                radial-gradient(2px 2px at 40% 80%, rgba(255,215,0,0.15) 0%, transparent 100%),
-                radial-gradient(3px 3px at 80% 60%, rgba(255,50,50,0.15) 0%, transparent 100%);
+                radial-gradient(2px 2px at 20% 30%, rgba(255,215,0,0.17) 0%, transparent 100%),
+                radial-gradient(2px 2px at 70% 20%, rgba(255,107,53,0.12) 0%, transparent 100%),
+                radial-gradient(2px 2px at 40% 80%, rgba(255,215,0,0.10) 0%, transparent 100%),
+                radial-gradient(3px 3px at 80% 60%, rgba(255,50,50,0.08) 0%, transparent 100%);
             pointer-events: none;
             z-index: 0;
         }
@@ -45,47 +70,50 @@
         /* ── 顶部标题 ── */
         .header {
             text-align: center;
-            padding: 24px 0 8px;
+            padding: 32px 0 14px;
             position: relative;
             z-index: 1;
         }
         .header h1 {
-            font-size: 3.2rem;
+            font-family: "Noto Serif SC", "STSong", serif;
+            font-size: clamp(2.4rem, 6.2vw, 4.3rem);
             font-weight: 900;
             background: linear-gradient(135deg, #ffd700 0%, #ff6b35 40%, #ffd700 60%, #ff4444 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            letter-spacing: 12px;
-            filter: drop-shadow(0 0 20px rgba(255,215,0,0.4));
+            letter-spacing: clamp(5px, 1.4vw, 14px);
+            filter: drop-shadow(0 0 18px rgba(255,215,0,0.35));
         }
         .header .subtitle {
-            font-size: 0.9rem;
-            color: #c4a35a;
-            margin-top: 6px;
-            letter-spacing: 4px;
+            font-size: 0.98rem;
+            color: var(--text-muted);
+            margin-top: 10px;
+            letter-spacing: 3px;
         }
         .homeLink {
             position: absolute;
-            top: 20px;
-            left: 20px;
+            top: 8px;
+            left: 10px;
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 8px 14px;
-            background: rgba(26, 10, 10, 0.9);
-            border: 1px solid rgba(255, 215, 0, 0.2);
+            padding: 6px 11px;
+            background: rgba(26, 10, 10, 0.66);
+            border: 1px solid rgba(255, 215, 0, 0.14);
             border-radius: 999px;
-            color: #c4a35a;
-            font-size: 0.875rem;
-            font-weight: 500;
+            color: #b69146;
+            font-size: 0.78rem;
+            font-weight: 400;
             text-decoration: none;
             transition: all 0.2s ease;
             z-index: 10;
+            opacity: 0.86;
         }
         .homeLink:hover {
-            background: rgba(255, 215, 0, 0.1);
+            background: rgba(255, 215, 0, 0.13);
             color: #ffd700;
-            border-color: rgba(255, 215, 0, 0.4);
+            border-color: rgba(255, 215, 0, 0.33);
+            opacity: 1;
             text-decoration: none;
         }
         .homeLink__icon {
@@ -99,13 +127,13 @@
         }
         .header .year-badge {
             display: inline-block;
-            margin-top: 4px;
-            padding: 2px 16px;
+            margin-top: 8px;
+            padding: 4px 18px;
             background: linear-gradient(90deg, transparent, rgba(255,215,0,0.15), transparent);
             border-radius: 20px;
             font-size: 0.8rem;
-            color: #c4a35a;
-            letter-spacing: 3px;
+            color: var(--text-muted);
+            letter-spacing: 2px;
         }
 
         /* ── 取景框（门口展示，适合围观） ── */
@@ -113,15 +141,16 @@
             position: relative;
             width: min(720px, 88vw);
             aspect-ratio: 4/3;
-            border: 2px solid rgba(255, 215, 0, 0.35);
+            border: 2px solid rgba(255, 215, 0, 0.45);
             border-radius: 16px;
             overflow: hidden;
-            margin: 12px 0;
+            margin: 18px 0 10px;
             background: #111;
             box-shadow:
-                0 0 40px rgba(255,215,0,0.08),
+                0 0 40px rgba(255,215,0,0.1),
                 inset 0 0 60px rgba(0,0,0,0.5);
             z-index: 1;
+            transition: transform 0.45s var(--ease-out), box-shadow 0.45s var(--ease-out);
         }
         /* 四角装饰 */
         .camera-container::before, .camera-container::after {
@@ -151,20 +180,38 @@
             position: absolute;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            pointer-events: none;
+            pointer-events: auto;
             transform: scaleX(-1);
+            cursor: crosshair;
         }
 
         .face-count {
             position: absolute;
             top: 14px; right: 20px;
-            background: rgba(0,0,0,0.65);
+            background: rgba(0,0,0,0.5);
             color: #ffd700;
             padding: 8px 18px;
             border-radius: 24px;
             font-size: 1rem;
             z-index: 10;
             backdrop-filter: blur(4px);
+        }
+        .camera-guide {
+            position: absolute;
+            left: 50%;
+            bottom: 12px;
+            transform: translateX(-50%);
+            width: max-content;
+            max-width: calc(100% - 20px);
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 223, 128, 0.28);
+            background: rgba(10, 6, 7, 0.68);
+            color: #e4cb92;
+            font-size: 0.82rem;
+            letter-spacing: 1px;
+            z-index: 15;
+            text-align: center;
         }
 
         /* ── 分析中覆盖层 ── */
@@ -186,8 +233,8 @@
             top: 0; left: 0; width: 100%;
             height: 4px;
             background: linear-gradient(90deg, transparent 0%, #ffd700 50%, transparent 100%);
-            box-shadow: 0 0 20px #ffd700, 0 0 40px rgba(255,215,0,0.4);
-            animation: scanDown 2s ease-in-out infinite;
+            box-shadow: 0 0 14px rgba(255,215,0,0.75), 0 0 26px rgba(255,215,0,0.25);
+            animation: scanDown 2.8s linear infinite;
         }
         @keyframes scanDown {
             0% { top: 0; }
@@ -198,13 +245,13 @@
         .analyzing-text {
             font-size: 1.6rem;
             color: #ffd700;
-            letter-spacing: 3px;
-            text-shadow: 0 0 20px rgba(255,215,0,0.6);
-            animation: textGlow 1.5s ease-in-out infinite;
+            letter-spacing: 2px;
+            text-shadow: 0 0 14px rgba(255,215,0,0.42);
+            animation: textGlow 2.6s ease-in-out infinite;
         }
         @keyframes textGlow {
-            0%, 100% { opacity: 1; text-shadow: 0 0 20px rgba(255,215,0,0.6); }
-            50% { opacity: 0.7; text-shadow: 0 0 40px rgba(255,215,0,0.9); }
+            0%, 100% { opacity: 1; text-shadow: 0 0 12px rgba(255,215,0,0.4); }
+            50% { opacity: 0.8; text-shadow: 0 0 20px rgba(255,215,0,0.6); }
         }
 
         .analyzing-step {
@@ -218,8 +265,9 @@
         .btn-area {
             display: flex;
             gap: 16px;
-            margin: 14px 0;
+            margin: 16px 0 8px;
             z-index: 1;
+            align-items: center;
         }
         .btn-fortune {
             padding: 20px 60px;
@@ -235,21 +283,27 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 30px rgba(255,215,0,0.4);
             font-family: inherit;
-            animation: btnShine 3s ease-in-out infinite;
+            will-change: transform;
         }
         @keyframes btnShine {
             0%, 100% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
         }
         .btn-fortune:hover {
+            animation: btnShine 1.5s ease-in-out infinite;
             transform: translateY(-2px) scale(1.02);
             box-shadow: 0 6px 40px rgba(255,215,0,0.6);
         }
         .btn-fortune:disabled {
-            opacity: 0.4;
+            opacity: 1;
+            color: #baa177;
+            background: linear-gradient(135deg, #6d5629, #5c451d);
+            border: 1px solid rgba(255, 223, 128, 0.24);
             cursor: not-allowed;
             transform: none;
             animation: none;
+            box-shadow: none;
+            filter: saturate(0.4);
         }
 
         .btn-retry {
@@ -270,6 +324,90 @@
             background: rgba(255,215,0,0.1);
             border-color: #ffd700;
         }
+        .action-hint {
+            min-height: 24px;
+            color: #ddc188;
+            font-size: 0.88rem;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            z-index: 1;
+            text-align: center;
+            max-width: min(92vw, 760px);
+        }
+
+        .action-hint[data-tone="error"] { color: var(--danger); }
+        .action-hint[data-tone="ok"] { color: var(--ok); }
+
+        .permission-actions {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 8px 0;
+            z-index: 1;
+            flex-wrap: wrap;
+        }
+
+        .btn-secondary,
+        .btn-upload,
+        .btn-cancel {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            border: 1px solid var(--panel-border);
+            background: var(--surface-0);
+            color: var(--text-muted);
+            font-size: 0.86rem;
+            letter-spacing: 1px;
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 40px;
+            text-decoration: none;
+            font-family: inherit;
+        }
+
+        .btn-secondary:hover,
+        .btn-upload:hover,
+        .btn-cancel:hover {
+            border-color: var(--panel-border-strong);
+            color: var(--text-main);
+            background: var(--surface-1);
+        }
+
+        .btn-upload {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-upload input {
+            position: absolute;
+            opacity: 0;
+            width: 1px;
+            height: 1px;
+            pointer-events: none;
+        }
+
+        .btn-cancel {
+            display: none;
+            color: #ffd8cf;
+            border-color: rgba(255, 151, 125, 0.45);
+            background: rgba(72, 31, 23, 0.7);
+        }
+
+        .progress-pill {
+            margin-top: 14px;
+            min-width: 200px;
+            padding: 6px 12px;
+            text-align: center;
+            border: 1px solid var(--panel-border);
+            border-radius: 999px;
+            background: var(--surface-0);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
 
         /* ── 结果卡片 ── */
         .result-card {
@@ -284,6 +422,7 @@
             overflow: hidden;
             z-index: 1;
             animation: fadeInUp 0.6s ease-out;
+            transition: transform 0.45s var(--ease-out), box-shadow 0.45s var(--ease-out);
         }
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(20px); }
@@ -292,9 +431,11 @@
         .result-card.visible { display: block; }
 
         .result-fortune-box {
-            padding: 28px 24px 20px;
+            padding: 34px 24px 24px;
             text-align: center;
-            background: linear-gradient(180deg, rgba(255,215,0,0.08) 0%, transparent 100%);
+            background:
+                radial-gradient(circle at 50% 10%, rgba(255,215,0,0.18), transparent 60%),
+                linear-gradient(180deg, rgba(255,215,0,0.1) 0%, transparent 100%);
             border-bottom: 1px solid rgba(255,215,0,0.1);
         }
         .fortune-label {
@@ -304,18 +445,44 @@
             margin-bottom: 12px;
         }
         .result-fortune {
-            font-size: 1.8rem;
+            font-family: "Noto Serif SC", "STSong", serif;
+            font-size: clamp(1.95rem, 3.6vw, 2.65rem);
             font-weight: 700;
-            color: #ffd700;
-            line-height: 2;
-            letter-spacing: 2px;
-            text-shadow: 0 0 20px rgba(255,215,0,0.3);
+            color: #ffe19d;
+            line-height: 1.7;
+            letter-spacing: 1px;
+            text-shadow: 0 0 20px rgba(255,215,0,0.36);
+            max-width: 18em;
+            margin: 0 auto;
         }
         .tech-meme {
-            margin-top: 8px;
+            margin-top: 14px;
             font-size: 0.85rem;
             color: #ff8c00;
             letter-spacing: 1px;
+        }
+
+        .fortune-evidence {
+            margin-top: 14px;
+            text-align: left;
+            max-width: 760px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 12px 14px;
+            border: 1px solid var(--panel-border);
+            background: var(--surface-0);
+            border-radius: 12px;
+        }
+
+        .evidence-item {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-top: 4px;
+        }
+
+        .evidence-item:first-child {
+            margin-top: 0;
         }
 
         /* 圈注图区域 */
@@ -381,21 +548,198 @@
             color: #c4a35a;
         }
 
+        .trace-section {
+            padding: 14px 24px 22px;
+            border-top: 1px solid rgba(255,215,0,0.1);
+        }
+
+        .trace-item {
+            margin-top: 8px;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 223, 128, 0.12);
+            border-radius: 10px;
+            background: rgba(255, 223, 128, 0.03);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            line-height: 1.55;
+        }
+
+        .history-card {
+            display: none;
+            width: 100%;
+            max-width: min(1120px, 92vw);
+            margin-bottom: 18px;
+            padding: 16px;
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(255, 223, 128, 0.08) 0%, rgba(255, 132, 76, 0.05) 100%);
+            z-index: 1;
+        }
+
+        .history-card.visible {
+            display: block;
+        }
+
+        .history-title {
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+        }
+
+        .history-list {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .history-item {
+            border: 1px solid rgba(255, 223, 128, 0.15);
+            background: rgba(20, 10, 8, 0.55);
+            border-radius: 10px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .history-item:hover {
+            border-color: var(--panel-border-strong);
+            transform: translateY(-1px);
+        }
+
+        .history-item-time {
+            font-size: 0.72rem;
+            color: var(--text-subtle);
+            margin-bottom: 6px;
+        }
+
+        .history-item-fortune {
+            font-size: 0.82rem;
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+
         /* ── 底部 ── */
         .footer {
             margin-top: auto;
             padding: 16px;
             font-size: 0.72rem;
-            color: #443;
+            color: var(--text-subtle);
             z-index: 1;
             letter-spacing: 1px;
         }
 
         .loading-hint {
-            color: #c4a35a;
+            color: #d0ae6a;
             font-size: 0.9rem;
             z-index: 1;
             letter-spacing: 2px;
+        }
+        body.has-result .header {
+            padding-top: 22px;
+        }
+        body.has-result .camera-container {
+            transform: scale(0.97);
+            box-shadow: 0 0 28px rgba(255, 215, 0, 0.06), inset 0 0 60px rgba(0,0,0,0.5);
+        }
+
+        body.has-result #cameraGuide,
+        body.has-result #faceCount {
+            opacity: 0.3;
+        }
+
+        body.has-result .result-card {
+            box-shadow: 0 12px 42px rgba(0,0,0,0.24);
+        }
+        @media (max-width: 920px) {
+            .header {
+                padding: 22px 0 12px;
+            }
+            .header .subtitle {
+                font-size: 0.86rem;
+                letter-spacing: 2px;
+                margin-top: 7px;
+            }
+            .header .year-badge {
+                font-size: 0.75rem;
+            }
+            .camera-container {
+                width: 93vw;
+                border-radius: 14px;
+                margin-top: 14px;
+            }
+            .btn-fortune {
+                padding: 18px 42px;
+                font-size: 1.24rem;
+                letter-spacing: 4px;
+            }
+            .result-card {
+                max-width: 94vw;
+            }
+            .result-fortune-box {
+                padding: 28px 16px 20px;
+            }
+            .features-section,
+            .rules-section,
+            .annotated-section {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+        }
+        @media (max-width: 640px) {
+            .homeLink {
+                position: static;
+                margin-bottom: 8px;
+            }
+            .header {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .header h1 {
+                letter-spacing: 6px;
+            }
+            .btn-area {
+                width: min(92vw, 520px);
+                gap: 10px;
+                align-items: stretch;
+                position: sticky;
+                bottom: max(12px, env(safe-area-inset-bottom));
+                padding: 8px;
+                border: 1px solid rgba(255, 223, 128, 0.15);
+                background: rgba(10, 6, 7, 0.86);
+                border-radius: 14px;
+                backdrop-filter: blur(6px);
+            }
+            .btn-fortune,
+            .btn-retry,
+            .btn-cancel {
+                width: 100%;
+            }
+            .permission-actions {
+                width: min(92vw, 520px);
+            }
+            .history-list {
+                grid-template-columns: 1fr;
+            }
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            .camera-guide {
+                font-size: 0.78rem;
+            }
+            .footer {
+                padding-top: 10px;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation: none !important;
+                transition: none !important;
+                scroll-behavior: auto !important;
+            }
         }
     </style>
 </head>
@@ -414,28 +758,40 @@
 
     <div class="camera-container" id="cameraContainer">
         <video id="video" autoplay playsinline></video>
-        <canvas id="overlay"></canvas>
+        <canvas id="overlay" tabindex="0" aria-label="人脸选择层"></canvas>
         <div class="face-count" id="faceCount" style="display:none;"></div>
+        <div class="camera-guide" id="cameraGuide">请将面部置于取景框中央，保持正脸与稳定光线</div>
         <!-- 分析中覆盖层 -->
-        <div class="analyzing-overlay" id="analyzingOverlay">
+        <div class="analyzing-overlay" id="analyzingOverlay" role="status" aria-live="assertive">
             <div class="scan-line"></div>
             <div class="analyzing-text" id="analyzingText">正在解析面相...</div>
             <div class="analyzing-step" id="analyzingStep"></div>
+            <div class="progress-pill" id="progressPill">等待开始</div>
         </div>
     </div>
 
-    <div class="loading-hint" id="loadingHint">正在加载人脸检测模型...</div>
+    <div class="loading-hint" id="loadingHint" role="status" aria-live="polite">正在加载人脸检测模型...</div>
+
+    <div class="permission-actions" id="permissionActions">
+        <button class="btn-secondary" id="btnRetryPermission" type="button">重新授权摄像头</button>
+        <label class="btn-upload" for="uploadInput">上传照片分析
+            <input id="uploadInput" type="file" accept="image/*" />
+        </label>
+    </div>
 
     <div class="btn-area">
-        <button class="btn-fortune" id="btnFortune" disabled>AI 相面</button>
-        <button class="btn-retry" id="btnRetry">再来一次</button>
+        <button class="btn-fortune" id="btnFortune" disabled type="button">AI 相面</button>
+        <button class="btn-cancel" id="btnCancel" type="button">取消分析</button>
+        <button class="btn-retry" id="btnRetry" type="button">再来一次</button>
     </div>
+    <div class="action-hint" id="actionHint" role="status" aria-live="polite">初始化中，请稍候…</div>
 
     <div class="result-card" id="resultCard">
         <div class="result-fortune-box">
             <div class="fortune-label">— 判 词 —</div>
             <div class="result-fortune" id="resultFortune"></div>
             <div class="tech-meme" id="techMeme"></div>
+            <div class="fortune-evidence" id="fortuneEvidence" style="display:none;"></div>
         </div>
         <div class="annotated-section" id="annotatedSection" style="display:none;">
             <div class="section-title">— 面相特征标注 —</div>
@@ -449,209 +805,58 @@
             <div class="section-title">— 命中规则 —</div>
             <div id="rulesTags"></div>
         </div>
+        <div class="trace-section" id="traceSection" style="display:none;">
+            <div class="section-title">— 分析轨迹 —</div>
+            <div id="traceList"></div>
+        </div>
+    </div>
+
+    <div class="history-card" id="historyCard">
+        <div class="history-title">最近 3 次分析（点击可回看）</div>
+        <div class="history-list" id="historyList"></div>
     </div>
 
     <div class="footer">Powered by AI Builders MCP · grok-4-fast · 仅供娱乐</div>
 
     <script>
-        // ══════════════════════════════════════
-        // 全局状态
-        // ══════════════════════════════════════
         const video = document.getElementById('video');
         const overlay = document.getElementById('overlay');
         const ctx = overlay.getContext('2d');
         const btnFortune = document.getElementById('btnFortune');
         const btnRetry = document.getElementById('btnRetry');
+        const btnCancel = document.getElementById('btnCancel');
+        const btnRetryPermission = document.getElementById('btnRetryPermission');
+        const uploadInput = document.getElementById('uploadInput');
+        const permissionActions = document.getElementById('permissionActions');
         const resultCard = document.getElementById('resultCard');
         const resultFortune = document.getElementById('resultFortune');
         const resultImage = document.getElementById('resultImage');
         const featureGrid = document.getElementById('featureGrid');
         const faceCountEl = document.getElementById('faceCount');
         const loadingHint = document.getElementById('loadingHint');
+        const actionHint = document.getElementById('actionHint');
         const analyzingOverlay = document.getElementById('analyzingOverlay');
         const analyzingText = document.getElementById('analyzingText');
         const analyzingStep = document.getElementById('analyzingStep');
+        const progressPill = document.getElementById('progressPill');
         const techMeme = document.getElementById('techMeme');
+        const fortuneEvidence = document.getElementById('fortuneEvidence');
         const annotatedSection = document.getElementById('annotatedSection');
         const rulesSection = document.getElementById('rulesSection');
         const rulesTags = document.getElementById('rulesTags');
+        const traceSection = document.getElementById('traceSection');
+        const traceList = document.getElementById('traceList');
+        const historyCard = document.getElementById('historyCard');
+        const historyList = document.getElementById('historyList');
 
-        let cameraReady = false;
-        let faceDetector = null;
-        let detecting = false;
-        let lastDetections = [];
-        const MIN_FACE_RATIO = 0.08;
+        const URL_PARAMS = new URLSearchParams(window.location.search);
+        const MOCK_MODE = URL_PARAMS.get('mock') === '1';
+        const DISABLE_CAMERA = URL_PARAMS.get('nocam') === '1';
 
-        // 后端 API 地址（同域或跨域均可）
         const API_BASE = '';
-
-        // ══════════════════════════════════════
-        // 1. MediaPipe FaceDetector 初始化
-        // ══════════════════════════════════════
-        async function initFaceDetector() {
-            try {
-                const vision = await FilesetResolver.forVisionTasks(
-                    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm"
-                );
-                faceDetector = await FaceDetector.createFromOptions(vision, {
-                    baseOptions: {
-                        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite",
-                        delegate: "GPU"
-                    },
-                    runningMode: "VIDEO",
-                    minDetectionConfidence: 0.5,
-                    minSuppressionThreshold: 0.3
-                });
-                console.log('[FaceDetector] 模型加载完成');
-                loadingHint.style.display = 'none';
-                return true;
-            } catch (err) {
-                console.error('[FaceDetector] 模型加载失败:', err);
-                loadingHint.textContent = '人脸检测模型加载失败，请刷新重试';
-                return false;
-            }
-        }
-
-        // ══════════════════════════════════════
-        // 2. 摄像头初始化
-        // ══════════════════════════════════════
-        async function initCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' }
-                });
-                video.srcObject = stream;
-                await new Promise(resolve => {
-                    video.addEventListener('loadeddata', resolve, { once: true });
-                });
-                overlay.width = video.videoWidth;
-                overlay.height = video.videoHeight;
-                cameraReady = true;
-                console.log('[Camera] 摄像头已就绪:', video.videoWidth, 'x', video.videoHeight);
-                return true;
-            } catch (err) {
-                console.error('[Camera] 摄像头启动失败:', err);
-                loadingHint.textContent = '请允许摄像头权限后刷新页面';
-                return false;
-            }
-        }
-
-        // ══════════════════════════════════════
-        // 3. 人脸检测循环
-        // ══════════════════════════════════════
-        let lastVideoTime = -1;
-
-        function detectFaces() {
-            if (!cameraReady || !faceDetector || detecting) {
-                requestAnimationFrame(detectFaces);
-                return;
-            }
-
-            if (video.currentTime !== lastVideoTime) {
-                lastVideoTime = video.currentTime;
-                try {
-                    const result = faceDetector.detectForVideo(video, performance.now());
-                    lastDetections = result.detections || [];
-                } catch (e) {}
-            }
-
-            drawDetections(lastDetections);
-            requestAnimationFrame(detectFaces);
-        }
-
-        // ══════════════════════════════════════
-        // 4. 绘制追踪框
-        // ══════════════════════════════════════
-        function drawDetections(detections) {
-            ctx.clearRect(0, 0, overlay.width, overlay.height);
-            const videoW = overlay.width;
-            const videoH = overlay.height;
-            const minFaceW = videoW * MIN_FACE_RATIO;
-
-            const validFaces = detections.filter(d => {
-                const bb = d.boundingBox;
-                return bb && bb.width >= minFaceW;
-            });
-
-            if (validFaces.length > 0) {
-                faceCountEl.style.display = 'block';
-                faceCountEl.textContent = `检测到 ${validFaces.length} 人`;
-            } else {
-                faceCountEl.style.display = 'none';
-            }
-
-            validFaces.forEach((det, idx) => {
-                const bb = det.boundingBox;
-                const score = det.categories?.[0]?.score || 0;
-                const x = bb.originX, y = bb.originY, w = bb.width, h = bb.height;
-
-                // 外框
-                ctx.strokeStyle = 'rgba(255,215,0,0.7)';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(x, y, w, h);
-
-                // 四角装饰
-                const cornerLen = Math.min(w, h) * 0.15;
-                ctx.strokeStyle = '#ff6b35';
-                ctx.lineWidth = 3;
-                ctx.beginPath(); ctx.moveTo(x, y + cornerLen); ctx.lineTo(x, y); ctx.lineTo(x + cornerLen, y); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(x + w - cornerLen, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + cornerLen); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(x, y + h - cornerLen); ctx.lineTo(x, y + h); ctx.lineTo(x + cornerLen, y + h); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(x + w - cornerLen, y + h); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w, y + h - cornerLen); ctx.stroke();
-
-                // 标签（取景框镜像，需反转绘制使文字正向显示）
-                const label = `面相 #${idx + 1}  ${(score * 100).toFixed(0)}%`;
-                ctx.font = 'bold 15px "PingFang SC", sans-serif';
-                const tw = ctx.measureText(label).width;
-                ctx.save();
-                ctx.translate(videoW, 0);
-                ctx.scale(-1, 1);
-                ctx.translate(-videoW, 0);
-                ctx.fillStyle = 'rgba(255, 107, 53, 0.85)';
-                ctx.fillRect(x, y - 26, tw + 14, 24);
-                ctx.fillStyle = '#fff';
-                ctx.fillText(label, x + 7, y - 8);
-                ctx.restore();
-
-                // 关键点
-                if (det.keypoints) {
-                    det.keypoints.forEach(kp => {
-                        ctx.beginPath();
-                        ctx.arc(kp.x * videoW, kp.y * videoH, 3, 0, Math.PI * 2);
-                        ctx.fillStyle = '#00ff88';
-                        ctx.fill();
-                    });
-                }
-            });
-        }
-
-        // ══════════════════════════════════════
-        // 5. 截图
-        // ══════════════════════════════════════
-        function captureFrame() {
-            const w = video.videoWidth;
-            const h = video.videoHeight;
-            console.log('[Capture] 开始截图 video尺寸:', w, 'x', h);
-            if (!w || !h) {
-                console.warn('[Capture] 视频尺寸无效:', w, h);
-                return null;
-            }
-            const canvas = document.createElement('canvas');
-            canvas.width = w;
-            canvas.height = h;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            const dataUrl = canvas.toDataURL('image/png');
-            console.log('[Capture] 截图完成 base64长度:', dataUrl.length, '前50字符:', dataUrl.slice(0, 50));
-            if (dataUrl.length < 5000) {
-                console.warn('[Capture] 截图过小:', dataUrl.length);
-                return null;
-            }
-            return dataUrl;
-        }
-
-        // ══════════════════════════════════════
-        // 6. 分析动画
-        // ══════════════════════════════════════
+        const MIN_FACE_RATIO = 0.08;
+        const STABLE_FACE_REQUIRED_FRAMES = 10;
+        const MAX_HISTORY = 3;
         const ANALYSIS_STAGES = [
             { text: '正在捕捉面部特征...', step: '启动 AI 相面引擎' },
             { text: '正在查看印堂气象...', step: '印堂 · 心性运势' },
@@ -663,59 +868,725 @@
             { text: '正在生成判词...', step: '即将揭晓...' },
         ];
 
-        let stageTimers = [];
+        let cameraReady = false;
+        let detectorReady = false;
+        let faceDetector = null;
+        let detecting = false;
+        let lastDetections = [];
+        let validFaces = [];
+        let activeFaceIndex = -1;
+        let activeFaceBox = null;
+        let stableFaceFrames = 0;
+        let analysisController = null;
+        let lastVideoTime = -1;
+        let stageTicker = null;
+        let analysisStartAt = 0;
+        let lastDetectionErrorAt = 0;
+        let hintLockUntil = 0;
 
-        function showAnalysisStages() {
-            analyzingOverlay.classList.add('active');
-            const interval = 1000;
-            ANALYSIS_STAGES.forEach((stage, i) => {
-                const t = setTimeout(() => {
-                    analyzingText.textContent = stage.text;
-                    analyzingStep.textContent = stage.step;
-                }, i * interval);
-                stageTimers.push(t);
+        const recentResults = [];
+        const telemetry = [];
+        window.__aiFortuneTelemetry = telemetry;
+
+        function trackEvent(event, payload = {}) {
+            const item = { t: new Date().toISOString(), event, payload };
+            telemetry.push(item);
+            if (telemetry.length > 200) {
+                telemetry.shift();
+            }
+            console.info('[Telemetry]', event, payload);
+        }
+
+        function setActionHint(text, tone = 'info', lockMs = 0) {
+            actionHint.textContent = text;
+            if (tone === 'info') {
+                actionHint.removeAttribute('data-tone');
+            } else {
+                actionHint.setAttribute('data-tone', tone);
+            }
+            if (lockMs > 0) {
+                hintLockUntil = Date.now() + lockMs;
+            }
+        }
+
+        function showPermissionActions(show) {
+            permissionActions.style.display = show ? 'flex' : 'none';
+        }
+
+        function createAppError(code, message) {
+            const err = new Error(message);
+            err.code = code;
+            return err;
+        }
+
+        function normalizeBox(bb) {
+            return {
+                x: Math.max(0, bb.originX),
+                y: Math.max(0, bb.originY),
+                w: Math.max(0, bb.width),
+                h: Math.max(0, bb.height),
+            };
+        }
+
+        function area(box) {
+            return Math.max(0, box.w) * Math.max(0, box.h);
+        }
+
+        function iou(a, b) {
+            const x1 = Math.max(a.x, b.x);
+            const y1 = Math.max(a.y, b.y);
+            const x2 = Math.min(a.x + a.w, b.x + b.w);
+            const y2 = Math.min(a.y + a.h, b.y + b.h);
+            const inter = Math.max(0, x2 - x1) * Math.max(0, y2 - y1);
+            const uni = area(a) + area(b) - inter;
+            return uni > 0 ? inter / uni : 0;
+        }
+
+        function pickLargestFaceIndex(faces) {
+            let index = 0;
+            let maxArea = -1;
+            faces.forEach((face, i) => {
+                const bb = normalizeBox(face.boundingBox);
+                const faceArea = area(bb);
+                if (faceArea > maxArea) {
+                    maxArea = faceArea;
+                    index = i;
+                }
             });
+            return index;
+        }
+
+        function pickClosestFaceIndex(faces, prevBox) {
+            if (!prevBox) {
+                return pickLargestFaceIndex(faces);
+            }
+            let bestIndex = 0;
+            let bestScore = -1;
+            faces.forEach((face, i) => {
+                const score = iou(normalizeBox(face.boundingBox), prevBox);
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestIndex = i;
+                }
+            });
+            return bestIndex;
+        }
+
+        function getActiveFace() {
+            if (activeFaceIndex < 0 || activeFaceIndex >= validFaces.length) {
+                return null;
+            }
+            return validFaces[activeFaceIndex] || null;
+        }
+
+        function setBusy(isBusy) {
+            detecting = isBusy;
+            btnCancel.style.display = isBusy ? 'inline-flex' : 'none';
+            btnRetry.style.display = isBusy ? 'none' : btnRetry.style.display;
+            updateFortuneButtonState();
+        }
+
+        function updateFortuneButtonState() {
+            const faceReady = Boolean(getActiveFace()) && stableFaceFrames >= STABLE_FACE_REQUIRED_FRAMES;
+            btnFortune.disabled = detecting || !cameraReady || !detectorReady || !faceReady;
+        }
+
+        function updateReadyHint() {
+            if (Date.now() < hintLockUntil) {
+                return;
+            }
+            if (detecting) {
+                return;
+            }
+            if (!detectorReady) {
+                setActionHint('检测模型未就绪，请稍候', 'error');
+                return;
+            }
+            if (!cameraReady) {
+                setActionHint('摄像头不可用，可重试授权或上传照片分析', 'error');
+                return;
+            }
+            if (validFaces.length === 0) {
+                setActionHint('未检测到清晰人脸，请靠近镜头并保证光线稳定');
+                return;
+            }
+            if (validFaces.length > 1) {
+                if (stableFaceFrames < STABLE_FACE_REQUIRED_FRAMES) {
+                    setActionHint(`已检测到 ${validFaces.length} 人，请点击目标人脸并稳定 ${stableFaceFrames}/${STABLE_FACE_REQUIRED_FRAMES}`);
+                } else {
+                    setActionHint(`已锁定目标人脸（${validFaces.length} 人场景），可开始分析`, 'ok');
+                }
+                return;
+            }
+            if (stableFaceFrames < STABLE_FACE_REQUIRED_FRAMES) {
+                setActionHint(`正在锁定人脸 ${stableFaceFrames}/${STABLE_FACE_REQUIRED_FRAMES}`);
+                return;
+            }
+            setActionHint('人脸已稳定，可点击「AI 相面」开始分析', 'ok');
+        }
+
+        function classifyError(err) {
+            if (err.name === 'AbortError' || err.code === 'ABORTED') {
+                return {
+                    title: '已取消本次分析',
+                    detail: '你可以立即重新开始，不会影响后续结果',
+                    hint: '已取消分析，可重新发起',
+                    tone: 'ok',
+                    transient: false,
+                };
+            }
+
+            const code = err.code || 'UNKNOWN';
+            if (code === 'NO_FACE') {
+                return {
+                    title: '未识别到有效人脸',
+                    detail: '请进入取景框中央并保持 1 秒稳定',
+                    hint: '请确保面部清晰、无遮挡、光线稳定',
+                    tone: 'error',
+                    transient: true,
+                };
+            }
+            if (code === 'IMAGE_INVALID') {
+                return {
+                    title: '图片质量不足',
+                    detail: '截图过小或模糊，AI 无法稳定识别',
+                    hint: '请靠近镜头，确保五官清晰后重试',
+                    tone: 'error',
+                    transient: true,
+                };
+            }
+            if (code === 'NETWORK') {
+                return {
+                    title: '网络连接异常',
+                    detail: '请求未送达服务，请检查网络后重试',
+                    hint: '网络波动，请稍后重试',
+                    tone: 'error',
+                    transient: true,
+                };
+            }
+            if (code === 'SERVICE_BAD_RESPONSE') {
+                return {
+                    title: '服务返回异常',
+                    detail: '收到非标准响应，已中止本次分析',
+                    hint: '服务繁忙，请稍后再试',
+                    tone: 'error',
+                    transient: true,
+                };
+            }
+            if (code === 'SERVICE_FAILURE') {
+                return {
+                    title: '分析暂时失败',
+                    detail: err.message || '服务当前不可用',
+                    hint: '可更换角度或上传照片后重试',
+                    tone: 'error',
+                    transient: true,
+                };
+            }
+            return {
+                title: '分析失败，请重试',
+                detail: err.message || '未知错误',
+                hint: `分析失败：${err.message || '未知错误'}`,
+                tone: 'error',
+                transient: true,
+            };
+        }
+
+        function showTransientStatus(result) {
+            if (!result.transient) {
+                return;
+            }
+            analyzingOverlay.classList.add('active');
+            analyzingText.textContent = result.title;
+            analyzingStep.textContent = result.detail;
+            progressPill.textContent = '请调整后重试';
+            setTimeout(() => hideAnalysisStages(), 2600);
+        }
+
+        function showAnalysisStages(contextText) {
+            analyzingOverlay.classList.add('active');
+            analysisStartAt = performance.now();
+            setActionHint('分析中，请保持姿态稳定，可随时取消');
+            if (stageTicker) {
+                clearInterval(stageTicker);
+                stageTicker = null;
+            }
+
+            stageTicker = setInterval(() => {
+                const elapsed = (performance.now() - analysisStartAt) / 1000;
+                const idx = Math.min(Math.floor(elapsed / 1.2), ANALYSIS_STAGES.length - 1);
+                const stage = ANALYSIS_STAGES[idx];
+                analyzingText.textContent = stage.text;
+                analyzingStep.textContent = stage.step;
+                progressPill.textContent = `${contextText} · ${elapsed.toFixed(1)}s`;
+            }, 180);
         }
 
         function hideAnalysisStages() {
             analyzingOverlay.classList.remove('active');
-            stageTimers.forEach(t => clearTimeout(t));
-            stageTimers = [];
+            if (stageTicker) {
+                clearInterval(stageTicker);
+                stageTicker = null;
+            }
+            progressPill.textContent = '等待开始';
         }
 
-        // ══════════════════════════════════════
-        // 7. 显示结果
-        // ══════════════════════════════════════
-        function showResult(data) {
-            // 判词
+        async function initFaceDetector() {
+            try {
+                const vision = await FilesetResolver.forVisionTasks(
+                    'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm'
+                );
+                faceDetector = await FaceDetector.createFromOptions(vision, {
+                    baseOptions: {
+                        modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite',
+                        delegate: 'GPU'
+                    },
+                    runningMode: 'VIDEO',
+                    minDetectionConfidence: 0.5,
+                    minSuppressionThreshold: 0.3
+                });
+                detectorReady = true;
+                loadingHint.textContent = cameraReady ? '系统就绪' : '模型就绪，等待摄像头权限...';
+                trackEvent('detector:ready');
+                return true;
+            } catch (err) {
+                detectorReady = false;
+                loadingHint.textContent = '人脸检测模型加载失败';
+                setActionHint('模型加载失败，请刷新页面后重试', 'error');
+                trackEvent('detector:error', { message: err.message });
+                console.error('[FaceDetector] 模型加载失败:', err);
+                return false;
+            }
+        }
+
+        async function initCamera() {
+            if (DISABLE_CAMERA) {
+                cameraReady = false;
+                showPermissionActions(true);
+                loadingHint.textContent = '已关闭摄像头模式';
+                setActionHint('当前为无摄像头模式，请上传照片分析');
+                return false;
+            }
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' }
+                });
+                video.srcObject = stream;
+                await new Promise(resolve => {
+                    video.addEventListener('loadeddata', resolve, { once: true });
+                });
+                overlay.width = video.videoWidth;
+                overlay.height = video.videoHeight;
+                cameraReady = true;
+                showPermissionActions(false);
+                trackEvent('camera:ready', { width: video.videoWidth, height: video.videoHeight });
+                return true;
+            } catch (err) {
+                cameraReady = false;
+                showPermissionActions(true);
+                const denied = ['NotAllowedError', 'SecurityError'].includes(err.name);
+                if (denied) {
+                    loadingHint.textContent = '摄像头权限未开启';
+                    setActionHint('请点「重新授权摄像头」或直接上传照片', 'error');
+                } else {
+                    loadingHint.textContent = '摄像头初始化失败';
+                    setActionHint('摄像头不可用，可上传照片继续体验', 'error');
+                }
+                trackEvent('camera:error', { name: err.name, message: err.message });
+                console.error('[Camera] 摄像头启动失败:', err);
+                return false;
+            }
+        }
+
+        function drawDetections(faces) {
+            ctx.clearRect(0, 0, overlay.width, overlay.height);
+            const videoW = overlay.width;
+            const videoH = overlay.height;
+
+            if (faces.length > 0) {
+                faceCountEl.style.display = 'block';
+                faceCountEl.textContent = `检测到 ${faces.length} 人`;
+            } else {
+                faceCountEl.style.display = 'none';
+            }
+
+            faces.forEach((det, idx) => {
+                const bb = det.boundingBox;
+                const score = det.categories?.[0]?.score || 0;
+                const x = bb.originX;
+                const y = bb.originY;
+                const w = bb.width;
+                const h = bb.height;
+                const isActive = idx === activeFaceIndex;
+
+                ctx.strokeStyle = isActive ? 'rgba(248,203,99,0.96)' : 'rgba(255,215,0,0.55)';
+                ctx.lineWidth = isActive ? 3 : 2;
+                ctx.strokeRect(x, y, w, h);
+
+                const cornerLen = Math.min(w, h) * 0.14;
+                ctx.strokeStyle = isActive ? '#ff8f50' : '#ff6b35';
+                ctx.lineWidth = isActive ? 3 : 2;
+                ctx.beginPath(); ctx.moveTo(x, y + cornerLen); ctx.lineTo(x, y); ctx.lineTo(x + cornerLen, y); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(x + w - cornerLen, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + cornerLen); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(x, y + h - cornerLen); ctx.lineTo(x, y + h); ctx.lineTo(x + cornerLen, y + h); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(x + w - cornerLen, y + h); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w, y + h - cornerLen); ctx.stroke();
+
+                const label = `${isActive ? '目标' : '面相'} #${idx + 1} ${(score * 100).toFixed(0)}%`;
+                ctx.font = 'bold 15px "PingFang SC", sans-serif';
+                const tw = ctx.measureText(label).width;
+                ctx.save();
+                ctx.translate(videoW, 0);
+                ctx.scale(-1, 1);
+                ctx.translate(-videoW, 0);
+                ctx.fillStyle = isActive ? 'rgba(248,203,99,0.92)' : 'rgba(255, 107, 53, 0.85)';
+                ctx.fillRect(x, y - 26, tw + 14, 24);
+                ctx.fillStyle = '#231008';
+                ctx.fillText(label, x + 7, y - 8);
+                ctx.restore();
+
+                if (det.keypoints && isActive) {
+                    det.keypoints.forEach(kp => {
+                        ctx.beginPath();
+                        ctx.arc(kp.x * videoW, kp.y * videoH, 2.5, 0, Math.PI * 2);
+                        ctx.fillStyle = '#89d79c';
+                        ctx.fill();
+                    });
+                }
+            });
+        }
+
+        function updateFaceSelection() {
+            const minFaceW = overlay.width * MIN_FACE_RATIO;
+            validFaces = (lastDetections || []).filter(d => {
+                const bb = d.boundingBox;
+                return bb && bb.width >= minFaceW;
+            });
+
+            if (validFaces.length === 0) {
+                activeFaceIndex = -1;
+                activeFaceBox = null;
+                stableFaceFrames = 0;
+                return;
+            }
+
+            if (activeFaceIndex < 0 || activeFaceIndex >= validFaces.length) {
+                activeFaceIndex = pickLargestFaceIndex(validFaces);
+            } else {
+                activeFaceIndex = pickClosestFaceIndex(validFaces, activeFaceBox);
+            }
+
+            const activeFace = getActiveFace();
+            if (!activeFace) {
+                stableFaceFrames = 0;
+                activeFaceBox = null;
+                return;
+            }
+
+            const nextBox = normalizeBox(activeFace.boundingBox);
+            const stable = activeFaceBox ? iou(activeFaceBox, nextBox) > 0.68 : false;
+            stableFaceFrames = stable
+                ? Math.min(stableFaceFrames + 1, STABLE_FACE_REQUIRED_FRAMES)
+                : Math.min(1, STABLE_FACE_REQUIRED_FRAMES);
+            activeFaceBox = nextBox;
+        }
+
+        function detectFaces() {
+            if (!cameraReady || !detectorReady || !faceDetector || detecting) {
+                requestAnimationFrame(detectFaces);
+                return;
+            }
+
+            if (video.currentTime !== lastVideoTime) {
+                lastVideoTime = video.currentTime;
+                try {
+                    const result = faceDetector.detectForVideo(video, performance.now());
+                    lastDetections = result.detections || [];
+                } catch (err) {
+                    const now = Date.now();
+                    if (now - lastDetectionErrorAt > 1500) {
+                        lastDetectionErrorAt = now;
+                        setActionHint('检测器短暂异常，正在自动恢复...');
+                        trackEvent('detector:runtime-error', { message: err.message });
+                        console.error('[Detect] runtime error:', err);
+                    }
+                }
+            }
+
+            updateFaceSelection();
+            drawDetections(validFaces);
+            updateReadyHint();
+            updateFortuneButtonState();
+            requestAnimationFrame(detectFaces);
+        }
+
+        function selectFaceByPoint(clientX, clientY) {
+            if (validFaces.length <= 1) {
+                return false;
+            }
+            const rect = overlay.getBoundingClientRect();
+            const scaleX = overlay.width / rect.width;
+            const scaleY = overlay.height / rect.height;
+
+            let x = (clientX - rect.left) * scaleX;
+            const y = (clientY - rect.top) * scaleY;
+            x = overlay.width - x;
+
+            let found = -1;
+            validFaces.forEach((face, idx) => {
+                const bb = normalizeBox(face.boundingBox);
+                if (x >= bb.x && x <= bb.x + bb.w && y >= bb.y && y <= bb.y + bb.h) {
+                    found = idx;
+                }
+            });
+
+            if (found >= 0) {
+                activeFaceIndex = found;
+                activeFaceBox = null;
+                stableFaceFrames = 0;
+                setActionHint(`已切换至目标 #${found + 1}，请保持稳定`);
+                trackEvent('face:selected', { index: found, total: validFaces.length });
+                return true;
+            }
+            return false;
+        }
+
+        function captureFrame(targetFace) {
+            const w = video.videoWidth;
+            const h = video.videoHeight;
+            if (!w || !h) {
+                return null;
+            }
+
+            const fullCanvas = document.createElement('canvas');
+            fullCanvas.width = w;
+            fullCanvas.height = h;
+            const fullCtx = fullCanvas.getContext('2d');
+            fullCtx.drawImage(video, 0, 0);
+
+            if (!targetFace?.boundingBox) {
+                return fullCanvas.toDataURL('image/png');
+            }
+
+            const bb = normalizeBox(targetFace.boundingBox);
+            const pad = 0.18;
+            const x = Math.max(0, Math.floor(bb.x - bb.w * pad));
+            const y = Math.max(0, Math.floor(bb.y - bb.h * pad));
+            const cw = Math.min(w - x, Math.ceil(bb.w * (1 + pad * 2)));
+            const ch = Math.min(h - y, Math.ceil(bb.h * (1 + pad * 2)));
+
+            if (!cw || !ch) {
+                return fullCanvas.toDataURL('image/png');
+            }
+
+            const cropCanvas = document.createElement('canvas');
+            cropCanvas.width = cw;
+            cropCanvas.height = ch;
+            const cropCtx = cropCanvas.getContext('2d');
+            cropCtx.drawImage(fullCanvas, x, y, cw, ch, 0, 0, cw, ch);
+            return cropCanvas.toDataURL('image/png');
+        }
+
+        function buildMockResponse() {
+            const fortunePool = [
+                '印堂明润眉眼有神，贵人助力连连，事业曲线稳步上扬',
+                '鼻翼饱满下庭圆润，财库稳健福泽渐旺，今年诸事顺遂',
+                '气色通透神采充盈，心定事成步步高，机缘正在加速靠近',
+            ];
+            const fortune = fortunePool[Math.floor(Math.random() * fortunePool.length)];
+            return {
+                features: {
+                    印堂: '印堂较开阔且平整，中心区域明度稳定',
+                    眉眼神态: '眉眼结构清晰，眼神聚焦度较高',
+                    鼻翼鼻头: '鼻梁线条较顺，鼻翼饱满度良好',
+                    嘴角下巴: '嘴角线条平稳，下巴轮廓完整',
+                    整体气色: '整体气色均匀，面部明暗分布较平衡'
+                },
+                matched_rules: [
+                    { dimension: '印堂', feature: '印堂开阔平满', meaning: '心胸豁达，适应力强' },
+                    { dimension: '眉眼神态', feature: '眼神有神', meaning: '精气神足，决断力强' },
+                    { dimension: '鼻翼鼻头', feature: '鼻翼饱满有力', meaning: '理财稳健，财库扎实' },
+                ],
+                fortune,
+                tech_meme_used: '你的面相 PR 已 merge，前途无量',
+                annotated_image: '',
+                trace: {
+                    mcp_calls: [
+                        {
+                            step: 'mock 分析流程',
+                            elapsed_seconds: 1.4,
+                            model: 'mock-engine',
+                            usage: { prompt_tokens: 120, completion_tokens: 92 }
+                        }
+                    ]
+                }
+            };
+        }
+
+        async function requestFortune(imageData, meta, signal) {
+            if (MOCK_MODE) {
+                await new Promise((resolve, reject) => {
+                    const timer = setTimeout(resolve, 1000);
+                    if (!signal) {
+                        return;
+                    }
+                    if (signal.aborted) {
+                        clearTimeout(timer);
+                        const abortErr = createAppError('ABORTED', '分析已取消');
+                        abortErr.name = 'AbortError';
+                        reject(abortErr);
+                        return;
+                    }
+                    signal.addEventListener('abort', () => {
+                        clearTimeout(timer);
+                        const abortErr = createAppError('ABORTED', '分析已取消');
+                        abortErr.name = 'AbortError';
+                        reject(abortErr);
+                    }, { once: true });
+                });
+                return buildMockResponse();
+            }
+
+            let resp;
+            try {
+                resp = await fetch(`${API_BASE}/api/fortune`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    signal,
+                    body: JSON.stringify({
+                        image: imageData,
+                        source: meta.source,
+                        target_face_bbox: meta.targetFaceBBox || null,
+                    }),
+                });
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    throw err;
+                }
+                throw createAppError('NETWORK', '网络请求失败');
+            }
+
+            const contentType = resp.headers.get('content-type') || '';
+            const rawText = await resp.text();
+
+            if (!contentType.includes('application/json')) {
+                throw createAppError('SERVICE_BAD_RESPONSE', '服务返回非 JSON 响应');
+            }
+
+            let data;
+            try {
+                data = JSON.parse(rawText);
+            } catch (_err) {
+                throw createAppError('SERVICE_BAD_RESPONSE', '服务响应解析失败');
+            }
+
+            if (!resp.ok) {
+                const detail = data.detail || data.message || '请求失败';
+                if (detail.includes('图片过小') || detail.includes('图片格式无效')) {
+                    throw createAppError('IMAGE_INVALID', detail);
+                }
+                throw createAppError('SERVICE_FAILURE', detail);
+            }
+
+            return data;
+        }
+
+        function renderEvidence(data) {
+            fortuneEvidence.innerHTML = '';
+            const rules = Array.isArray(data.matched_rules) ? data.matched_rules.slice(0, 3) : [];
+            if (rules.length === 0) {
+                fortuneEvidence.style.display = 'none';
+                return;
+            }
+
+            rules.forEach((rule, idx) => {
+                const row = document.createElement('div');
+                row.className = 'evidence-item';
+                row.textContent = `${idx + 1}. ${rule.dimension} · ${rule.feature} -> ${rule.meaning || '命中规则'}`;
+                fortuneEvidence.appendChild(row);
+            });
+            fortuneEvidence.style.display = 'block';
+        }
+
+        function renderTrace(data) {
+            const traceCalls = data.trace?.mcp_calls;
+            if (!Array.isArray(traceCalls) || traceCalls.length === 0) {
+                traceSection.style.display = 'none';
+                traceList.innerHTML = '';
+                return;
+            }
+
+            traceList.innerHTML = '';
+            traceCalls.forEach(call => {
+                const item = document.createElement('div');
+                item.className = 'trace-item';
+                const elapsed = call.elapsed_seconds != null ? `${call.elapsed_seconds}s` : '未知';
+                const usage = call.usage ? JSON.stringify(call.usage) : '无';
+                item.textContent = `${call.step || '分析步骤'} | model: ${call.model || 'unknown'} | 耗时: ${elapsed} | tokens: ${usage}`;
+                traceList.appendChild(item);
+            });
+            traceSection.style.display = 'block';
+        }
+
+        function renderHistory() {
+            historyList.innerHTML = '';
+            if (recentResults.length === 0) {
+                historyCard.classList.remove('visible');
+                return;
+            }
+            historyCard.classList.add('visible');
+
+            recentResults.forEach((entry, idx) => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.setAttribute('role', 'button');
+                item.setAttribute('tabindex', '0');
+                item.dataset.index = String(idx);
+                item.innerHTML = `
+                    <div class="history-item-time">${entry.timeText}</div>
+                    <div class="history-item-fortune">${entry.data.fortune || '暂无判词'}</div>
+                `;
+                historyList.appendChild(item);
+            });
+        }
+
+        function pushHistory(data) {
+            const snap = {
+                timeText: new Date().toLocaleTimeString('zh-CN', { hour12: false }),
+                data: JSON.parse(JSON.stringify(data)),
+            };
+            recentResults.unshift(snap);
+            if (recentResults.length > MAX_HISTORY) {
+                recentResults.pop();
+            }
+            renderHistory();
+        }
+
+        function showResult(data, options = {}) {
             resultFortune.textContent = data.fortune || '福星高照，前途无量';
 
-            // 科技梗
-            if (data.tech_meme_used && data.tech_meme_used !== 'null' && data.tech_meme_used !== null) {
+            if (data.tech_meme_used && data.tech_meme_used !== 'null') {
                 techMeme.textContent = `[${data.tech_meme_used}]`;
                 techMeme.style.display = 'block';
             } else {
                 techMeme.style.display = 'none';
             }
 
-            // 圈注图
-            if (data.annotated_image && data.annotated_image.startsWith('data:image')) {
+            if (data.annotated_image?.startsWith('data:image')) {
                 resultImage.src = data.annotated_image;
                 annotatedSection.style.display = 'block';
             } else {
                 annotatedSection.style.display = 'none';
             }
 
-            // 五维特征
             featureGrid.innerHTML = '';
             const dimLabels = {
-                '印堂': '印堂 · 心性',
-                '眉眼神态': '眉眼 · 精神',
-                '鼻翼鼻头': '鼻相 · 财运',
-                '嘴角下巴': '嘴下巴 · 福禄',
-                '整体气色': '气色 · 综合'
+                印堂: '印堂 · 心性',
+                眉眼神态: '眉眼 · 精神',
+                鼻翼鼻头: '鼻相 · 财运',
+                嘴角下巴: '嘴下巴 · 福禄',
+                整体气色: '气色 · 综合'
             };
-            if (data.features) {
+
+            if (data.features && typeof data.features === 'object') {
                 Object.entries(data.features).forEach(([k, v]) => {
                     const item = document.createElement('div');
                     item.className = 'feature-item';
@@ -727,8 +1598,7 @@
                 });
             }
 
-            // 命中规则
-            if (data.matched_rules && data.matched_rules.length > 0) {
+            if (Array.isArray(data.matched_rules) && data.matched_rules.length > 0) {
                 rulesTags.innerHTML = '';
                 data.matched_rules.forEach(r => {
                     const tag = document.createElement('span');
@@ -742,98 +1612,216 @@
                 rulesSection.style.display = 'none';
             }
 
+            renderEvidence(data);
+            renderTrace(data);
+
             resultCard.classList.add('visible');
-            resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            document.body.classList.add('has-result');
+            btnRetry.style.display = 'inline-flex';
+            setActionHint('分析完成，可查看证据链或点击「再来一次」', 'ok');
+
+            if (!options.fromHistory) {
+                pushHistory(data);
+            }
+            if (!options.skipScroll) {
+                resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
         }
 
-        // ══════════════════════════════════════
-        // 8. AI 相面主流程
-        // ══════════════════════════════════════
-        btnFortune.addEventListener('click', async () => {
-            if (!cameraReady) return;
-
-            btnFortune.disabled = true;
-            btnRetry.style.display = 'none';
+        function resetResultView() {
             resultCard.classList.remove('visible');
+            document.body.classList.remove('has-result');
+            btnRetry.style.display = 'none';
+            setActionHint('请将面部置于取景框中央后重新分析');
+        }
 
-            const imageData = captureFrame();
-            if (!imageData) {
-                console.error('[Fortune] captureFrame 返回 null');
-                analyzingOverlay.classList.add('active');
-                analyzingText.textContent = '截图失败';
-                analyzingStep.textContent = '请确保人脸在取景框内清晰可见';
-                setTimeout(() => hideAnalysisStages(), 3000);
-                btnFortune.disabled = false;
-                return;
+        async function analyzeWithImage(imageData, meta) {
+            if (!imageData || imageData.length < 5000) {
+                throw createAppError('IMAGE_INVALID', '图片数据无效');
             }
-            console.log('[Fortune] 开始请求 API_BASE=', API_BASE || '(空即同域)', 'body长度:', JSON.stringify({ image: imageData }).length);
-            showAnalysisStages();
+
+            analysisController = new AbortController();
+            setBusy(true);
+            resetResultView();
+            showAnalysisStages(meta.source === 'upload' ? '上传图分析中' : '实时画面分析中');
+            trackEvent('analysis:start', meta);
 
             try {
-                const resp = await fetch(`${API_BASE}/api/fortune`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ image: imageData }),
-                });
-
-                const contentType = resp.headers.get('content-type') || '';
-                const rawText = await resp.text();
-
-                console.log('[Fortune] 响应 status=', resp.status, 'contentType=', contentType, 'rawText长度=', rawText.length, 'rawText前200=', rawText.slice(0, 200));
-
-                if (!contentType.includes('application/json')) {
-                    console.error('[Fortune] 非 JSON 响应 完整内容:', rawText.slice(0, 500));
-                    throw new Error('服务返回异常，请稍后重试');
-                }
-
-                let data;
-                try {
-                    data = JSON.parse(rawText);
-                } catch (e) {
-                    console.error('[Fortune] JSON 解析失败 rawText=', rawText.slice(0, 500));
-                    throw new Error('服务返回异常，请稍后重试');
-                }
-
-                if (!resp.ok) {
-                    console.error('[Fortune] resp.ok=false detail=', data.detail);
-                    throw new Error(data.detail || data.message || '请求失败');
-                }
-
-                console.log('[Fortune] 成功 data.fortune=', data.fortune?.slice(0, 50));
-
+                const data = await requestFortune(imageData, meta, analysisController.signal);
                 hideAnalysisStages();
                 showResult(data);
-                btnRetry.style.display = 'inline-block';
-
+                trackEvent('analysis:success', { source: meta.source, fortune: (data.fortune || '').slice(0, 24) });
             } catch (err) {
-                console.error('[Fortune] 捕获异常:', err.name, err.message, err.stack);
+                const mapped = classifyError(err);
                 hideAnalysisStages();
-                analyzingOverlay.classList.add('active');
-                analyzingText.textContent = '分析失败，请重试';
-                analyzingStep.textContent = err.message;
-                setTimeout(() => hideAnalysisStages(), 3000);
+                showTransientStatus(mapped);
+                setActionHint(mapped.hint, mapped.tone, 1500);
+                trackEvent('analysis:error', { code: err.code || err.name, message: err.message });
+                if (err.name !== 'AbortError') {
+                    console.error('[Fortune] 分析失败:', err);
+                }
             } finally {
-                btnFortune.disabled = false;
+                analysisController = null;
+                setBusy(false);
+                updateReadyHint();
+            }
+        }
+
+        async function handleFortuneClick() {
+            if (!cameraReady || !detectorReady) {
+                setActionHint('摄像头或检测模型未就绪', 'error');
+                return;
+            }
+            const activeFace = getActiveFace();
+            if (!activeFace || stableFaceFrames < STABLE_FACE_REQUIRED_FRAMES) {
+                throw createAppError('NO_FACE', '尚未锁定稳定人脸');
+            }
+
+            const imageData = captureFrame(activeFace);
+            await analyzeWithImage(imageData, {
+                source: 'camera',
+                targetFaceBBox: normalizeBox(activeFace.boundingBox),
+            });
+        }
+
+        async function handleUploadFile(file) {
+            if (!file) {
+                return;
+            }
+            const dataUrl = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(createAppError('IMAGE_INVALID', '读取图片失败'));
+                reader.readAsDataURL(file);
+            });
+            await analyzeWithImage(dataUrl, {
+                source: 'upload',
+                fileName: file.name,
+            });
+            uploadInput.value = '';
+        }
+
+        btnFortune.addEventListener('click', async () => {
+            try {
+                await handleFortuneClick();
+            } catch (err) {
+                const mapped = classifyError(err);
+                showTransientStatus(mapped);
+                setActionHint(mapped.hint, mapped.tone, 1200);
+                trackEvent('analysis:precheck-failed', { code: err.code, message: err.message });
             }
         });
 
-        // "再来一次"按钮
+        btnCancel.addEventListener('click', () => {
+            if (analysisController) {
+                analysisController.abort();
+                trackEvent('analysis:cancel');
+            }
+        });
+
         btnRetry.addEventListener('click', () => {
-            resultCard.classList.remove('visible');
-            btnRetry.style.display = 'none';
+            resetResultView();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
-        // ══════════════════════════════════════
-        // 启动
-        // ══════════════════════════════════════
-        async function boot() {
-            const [camOk, detOk] = await Promise.all([initCamera(), initFaceDetector()]);
-            if (camOk && detOk) {
-                btnFortune.disabled = false;
+        btnRetryPermission.addEventListener('click', async () => {
+            const ok = await initCamera();
+            if (ok) {
+                loadingHint.textContent = '摄像头已恢复';
+                setActionHint('摄像头权限已开启，请保持正脸');
                 detectFaces();
-                console.log('[Boot] 系统就绪');
             }
+            updateFortuneButtonState();
+        });
+
+        uploadInput.addEventListener('change', async (event) => {
+            const file = event.target.files?.[0];
+            if (!file) {
+                return;
+            }
+            try {
+                setActionHint('已选择图片，开始分析中...');
+                await handleUploadFile(file);
+            } catch (err) {
+                const mapped = classifyError(err);
+                setActionHint(mapped.hint, mapped.tone);
+                showTransientStatus(mapped);
+            }
+        });
+
+        overlay.addEventListener('click', (event) => {
+            selectFaceByPoint(event.clientX, event.clientY);
+        });
+
+        overlay.addEventListener('keydown', (event) => {
+            if (validFaces.length <= 1) {
+                if (event.key === 'Enter' && !btnFortune.disabled) {
+                    event.preventDefault();
+                    btnFortune.click();
+                }
+                return;
+            }
+            if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+                activeFaceIndex = (activeFaceIndex + 1) % validFaces.length;
+                stableFaceFrames = 0;
+                activeFaceBox = null;
+                event.preventDefault();
+            }
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+                activeFaceIndex = (activeFaceIndex - 1 + validFaces.length) % validFaces.length;
+                stableFaceFrames = 0;
+                activeFaceBox = null;
+                event.preventDefault();
+            }
+            if (event.key === 'Enter' && !btnFortune.disabled) {
+                event.preventDefault();
+                btnFortune.click();
+            }
+        });
+
+        historyList.addEventListener('click', (event) => {
+            const item = event.target.closest('.history-item');
+            if (!item) {
+                return;
+            }
+            const idx = Number(item.dataset.index);
+            const entry = recentResults[idx];
+            if (!entry) {
+                return;
+            }
+            showResult(entry.data, { fromHistory: true, skipScroll: true });
+            setActionHint(`已回看 ${entry.timeText} 的分析结果`, 'ok');
+            trackEvent('history:view', { index: idx });
+        });
+
+        historyList.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') {
+                return;
+            }
+            const item = event.target.closest('.history-item');
+            if (item) {
+                event.preventDefault();
+                item.click();
+            }
+        });
+
+        async function boot() {
+            trackEvent('boot:start', { mock: MOCK_MODE, noCamera: DISABLE_CAMERA });
+            if (MOCK_MODE) {
+                setActionHint('测试模式已开启：可通过上传图片快速验证流程');
+            }
+
+            const [camOk, detOk] = await Promise.all([initCamera(), initFaceDetector()]);
+            loadingHint.style.display = 'none';
+
+            if (camOk && detOk) {
+                detectFaces();
+            }
+
+            updateFortuneButtonState();
+            updateReadyHint();
+            renderHistory();
+            trackEvent('boot:done', { camOk, detOk });
         }
 
         if (window.FilesetResolver && window.FaceDetector) {
